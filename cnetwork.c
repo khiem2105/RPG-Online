@@ -29,6 +29,7 @@ typedef int bool;
 // ip public
 char ip[20];
 char global_buf[1024];
+char global_buf2[1024];
 int sd, activity, new_socket, val_read;
 
 //----------------------MASTER PEER ----------------------
@@ -199,8 +200,9 @@ void Cincomming_connection(void) {
 	char* new_connection_ip = inet_ntoa(Master.address.sin_addr);
 	int new_connection_port = ntohs(Master.address.sin_port);
 	printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , new_connection_ip, new_connection_port);
-
+	
 	// add new socket to the table peer socket
+	int new_id=-1;
 	for (int i=0; i< Master.max_peer; i++) {
 	    if (Master.peer_socket[i].fd == 0) {
 		Master.peer_socket[i].fd = new_socket;
@@ -220,7 +222,17 @@ void Cincomming_connection(void) {
 		Master.peer_socket[i].id = i;
 		Master.peer_socket[i].ip = new_connection_ip;
 		Master.peer_socket[i].port = new_connection_port;
+		
+		new_id = i;
 		break;
+	    } 
+	}
+	// Send information of this new_peer to old peers
+	sprintf(global_buf, "%i,%s,%d", new_id, new_connection_ip, new_connection_port);
+	for (int i=0; i<Master.max_peer; i++) {
+	    if (i == new_id) continue;
+	    else if (Master.peer_socket[i].fd != 0) {
+		Csend_message(Master.peer_socket[i].fd, global_buf);
 	    }
 	}
     }
@@ -259,7 +271,7 @@ void Cincomming_message(void) {
 // --------------------------------------------------------
 // -------------- Master peer start loop ------------------
 void* Cmaster_loop(void *args) {
-    printf("Runing = %i\n", Master.running_master_thread);
+    printf("Running = %i\n", Master.running_master_thread);
     // while running is True : 
     // 1. listen and accept others Peers 
     // 2. when accept => send welcome packet 
@@ -308,6 +320,7 @@ void Cmaster_peer_start_loop(void) {
     Cinit_master_peer();
     Master.running_master_thread = true;
     // Create Thread LOOP
+    printf("Python create C thread - multiplayers!\n");
     if (pthread_create(&master_thread, NULL, &Cmaster_loop, NULL)) 
 	stop("Creation thread failed ! "); // 0 = ok ; >0 = error
 
