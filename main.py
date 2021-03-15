@@ -22,13 +22,17 @@ if __name__ == "__main__":
 		Cnetwork.peer_connect_to(port, ip) 
 		#Cnetwork.data_peer_start_loop()
 		#Cnetwork.data_peer_end_loop()
+		first_rev = True;
 		while True:
 			welcome = Cnetwork.peer_receive_from_master()
-			try:
+			if not first_rev:
 				newId, newIp, newPort = welcome.split(",")
 				print("New connection: ")
 				print(newId, newIp, newPort)
-			except:
-				print(welcome)
+			else:
+				myId, myPort = map(int,welcome.split(";"))
+				print("My id: ", myId)
+				print("My port: ", myPort)
+				Cnetwork.peer_create_and_bind(2512)
 			time.sleep(2)
 

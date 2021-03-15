@@ -78,13 +78,31 @@ void Cinit_master_peer(void) {
 // Data of Peer
 struct NormalPeer {
     int master_file_desc;
+    struct sockaddr_in address;
+    int master_socket;
+    int opt;
+    int port;
+    int addrlen;
+    int max_sd;
     char buffer[1024];
+    // table of other peer's socket
+    struct PeerSocket peer_socket[5];
+    int max_peer;
+
+    // variable which maintains the master loop 
+    bool running_master_thread;
+
+    fd_set readfds;
 };
 
 //Initialization
 struct NormalPeer Peer;
 void Cinit_normal_peer(void) {
     bzero(Peer.buffer, 1024);
+    Peer.opt = 1;
+    Peer.running_master_thread = false;
+    Peer.max_peer = 5;
+    memset(Peer.peer_socket, 0, sizeof(Master.peer_socket));
 }
 //--------------------END PEER ----------------------
 
@@ -149,6 +167,37 @@ static PyObject* listen_and_accept(PyObject* self) {
 // ---------------------------------------------------------
 
 
+
+// -------------------------------------------------------
+// --------------- Peer Create and Bind -----------------
+void Cpeer_create_and_bind(void) {
+    //create a peer socket
+    if ((Peer.master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0) 
+	stop("Socket() failed : ");
+ 
+    // set master socket to allow multiple connections 
+    if( setsockopt(Peer.master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&Peer.opt, sizeof(Peer.opt)) < 0 ) 
+	stop("SocketPeer.opt : ");
+ 
+    //type of socket created
+    Peer.address.sin_family = AF_INET;
+    Peer.address.sin_addr.s_addr = INADDR_ANY; // inet_addr(ip)
+    Peer.address.sin_port = htons(Peer.port);
+     
+    //bind the socket 
+    if (bind(Peer.master_socket, (struct sockaddr *)&Peer.address, sizeof(Peer.address))<0) 
+	stop("Bind() failed : ");
+    printf("Create and bind successfully!\n");
+}
+
+static PyObject* peer_create_and_bind(PyObject* self, PyObject* args) {
+	if (!PyArg_ParseTuple(args, "i", &Peer.port)) return NULL;
+	Cpeer_create_and_bind();
+	return Py_BuildValue("s", "Success");
+}
+// ---------------------------------------------------------
+// ---------------------------------------------------------
+
 // -------------------------------------------------------
 // --------------- Create and Bind -------------------------
 void Ccreate_and_bind(void) {
@@ -207,7 +256,7 @@ void Cincomming_connection(void) {
 	    if (Master.peer_socket[i].fd == 0) {
 		Master.peer_socket[i].fd = new_socket;
 		// send welcome message 
-		sprintf(global_buf, "%s%i;", "id=", i);
+		sprintf(global_buf, "%i;%i", i, new_connection_port); // id; port
 		// information of others 
 		char temp_buf[1024];
 		for (int j=0; j<Master.max_peer; j++) {
@@ -409,6 +458,7 @@ static PyObject* peer_connect_to(PyObject* self, PyObject* args) {
 // ----------------------------------------------------------
 // If a method hasn't arguments => you must add (PyCFunction)
 static PyMethodDef networkMethods[] = { // (PyCFunction)
+    {"peer_create_and_bind", peer_create_and_bind, METH_VARARGS, "Create and bind socket normal peer"},
     {"peer_receive_from_master", (PyCFunction)peer_receive_from_master, METH_NOARGS, "Receive packet (string) from master"},
     {"peer_connect_to", peer_connect_to, METH_VARARGS, "Create a connection to a addresse and port specify"},
     {"master_peer_end_loop", (PyCFunction)master_peer_end_loop, METH_NOARGS, "End master peer loop"},
