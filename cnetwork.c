@@ -91,7 +91,7 @@ void Cinit_normal_peer(void) {
 
 // thread which runs master_loop
 pthread_t master_thread;
-
+pthread_t data_thread;
 // -------------------END Delaration variable ---------------------
 // ---------------------------------------------------------------
 

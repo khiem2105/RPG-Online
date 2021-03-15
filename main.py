@@ -20,7 +20,15 @@ if __name__ == "__main__":
 		ip = "127.0.0.1"
 		port = 2510
 		Cnetwork.peer_connect_to(port, ip) 
+		#Cnetwork.data_peer_start_loop()
+		#Cnetwork.data_peer_end_loop()
 		while True:
 			welcome = Cnetwork.peer_receive_from_master()
-			print(welcome)
+			try:
+				newId, newIp, newPort = welcome.split(",")
+				print("New connection: ")
+				print(newId, newIp, newPort)
+			except:
+				print(welcome)
 			time.sleep(2)
+
