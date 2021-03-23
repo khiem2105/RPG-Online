@@ -12,10 +12,3 @@ sudo apt install dnsutils
 
 make 
 
-## UML
-
-https://app.diagrams.net/
-
-1. Open an existing file
-
-2. Github 
