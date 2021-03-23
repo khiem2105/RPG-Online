@@ -128,11 +128,19 @@ void Csend_message(int soc, char* message) {
     if ((size_t)send(soc, message, strlen(message), 0) != strlen(message)) 
 	stop("[C] Send message function !");
 }
-//------ LOOP TO ALL PEER and send a message USING GLOBAL_BUF  -------------
-void Csend_message_to_all_others_peer(void) {
+//------ MASTER : LOOP TO ALL PEER and send a message USING GLOBAL_BUF  -------------
+void Cmaster_send_message_to_all_others_peer(void) {
     for (int i=0; i<Master.max_peer; i++) {
 	if (Master.peer_socket[i].fd != 0) {
 	    Csend_message(Master.peer_socket[i].fd, global_buf);
+	}
+    }
+}
+//------ PEER : LOOP TO ALL PEER and send a message USING GLOBAL_BUF  -------------
+void Cpeer_send_message_to_all_others_peer(void) {
+    for (int i=0; i<Peer.max_peer; i++) {
+	if (Peer.peer_socket[i].fd != 0) {
+	    Csend_message(Peer.peer_socket[i].fd, global_buf);
 	}
     }
 }
@@ -322,7 +330,7 @@ void Cincomming_message(void) {
 		Master.peer_socket[i].fd = 0;
 		// Send message to all others Peers to inform
 		sprintf(global_buf, "Disconnected;%i;", i);
-		Csend_message_to_all_others_peer();	
+		Cmaster_send_message_to_all_others_peer();	
 	    }
 	    // Print the messgage received
 	    else {
@@ -478,6 +486,8 @@ static PyObject* peer_connect_to_peer(PyObject* self, PyObject* args) {
 	Peer.peer_socket[p].id = connect_id;
 	printf("[C] Connected to player %i\n", connect_id);
 	// Send id to the peer connected
+	sprintf(global_buf, "F%i", Peer.myId);
+	Csend_message(Peer.peer_socket[p].fd , global_buf);
     } else {
 	printf("[C] Can't establish new connection because it reached the maximum !\n");
     }
@@ -536,7 +546,14 @@ void Cpeer_incomming_message(void) {
 	    // Print the messgage received
 	    else {
 		Peer.buffer[val_read] = '\0';
-		printf("[C] Message received : %s", Peer.buffer);
+		// If first message => id of the player
+		if (Peer.buffer[0] == 'F') {
+		    char c = Peer.buffer[1] ; int int_c = c - '0';
+		    printf("[C] Connected to player %i\n", int_c);
+		    Peer.peer_socket[i].id = int_c;
+		} else {
+		    printf("[C] Message received : %s", Peer.buffer);
+		}
 	    }
 	}
     }
@@ -612,7 +629,7 @@ static PyObject* normal_peer_start_loop(PyObject* self) {
 
 
 // -------------------------------------------------------
-// --------------- Create and Bind -------------------------
+// --------------- Set my id-------------------------
 static PyObject* set_my_id(PyObject* self, PyObject* args) {
 	if (!PyArg_ParseTuple(args, "i", &Peer.myId)) return NULL;
 	return Py_BuildValue("s", "Success");
