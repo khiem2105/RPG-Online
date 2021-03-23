@@ -22,6 +22,7 @@
 #define BUF_SIZE 1024
 #define false 0
 #define true 1
+#define MAX_CONNECTION 5
 typedef int bool;
 // ------------------------------------------------------------
 // ------------------- Delaration variable ---------------------
@@ -85,6 +86,7 @@ struct NormalPeer {
     int addrlen;
     int max_sd;
     char buffer[BUF_SIZE];
+    int number_of_other_peers;
     // table of other peer's socket
     struct PeerSocket peer_socket[5];
     int max_peer;
@@ -102,6 +104,7 @@ void Cinit_normal_peer(void) {
     Peer.opt = 1;
     Peer.running_master_thread = false;
     Peer.max_peer = 5;
+    Peer.number_of_other_peers = 0;
     memset(Peer.peer_socket, 0, sizeof(Master.peer_socket));
 }
 //--------------------END PEER ----------------------
@@ -123,7 +126,7 @@ void stop(char* msg) {
 // --------------- Send Message Function------------------------
 void Csend_message(int soc, char* message) {
     if ((size_t)send(soc, message, strlen(message), 0) != strlen(message)) 
-	stop("Send message function !");
+	stop("[C] Send message function !");
 }
 //------ LOOP TO ALL PEER and send a message USING GLOBAL_BUF  -------------
 void Csend_message_to_all_others_peer(void) {
@@ -143,12 +146,12 @@ char* Cget_ip_public(void) {
 	FILE* file; bzero(ip, 20);
 	// https://www.cyberciti.biz/faq/how-to-find-my-public-ip-address-from-command-line-on-a-linux/	
 	// save ip public to file by direction, then read the file
-	if (system("dig +short myip.opendns.com @resolver1.opendns.com > ip") < 0) stop("System(dig) : ")	;
-	if ((file = fopen("ip", "r")) == NULL ) stop("Open file : ");
+	if (system("dig +short myip.opendns.com @resolver1.opendns.com > ip") < 0) stop("[C] System(dig) : ")	;
+	if ((file = fopen("ip", "r")) == NULL ) stop("[C] Open file : ");
 	fscanf(file, "%s", ip);
 	fclose(file);
 	// Delete file ip
-	if (system("rm ip") < 0) stop("System(rm) : ");
+	if (system("rm ip") < 0) stop("[C] System(rm) : ");
 	return ip;
 }
 
@@ -163,9 +166,9 @@ static PyObject* get_ip_public(PyObject* self) {
 // -------------------------------------------------------
 // --------------- Listen and accept -------------------------
 void Clisten_and_accept(void) {
-    printf("Listener on port %d \n", Master.port);
+    printf("[C] [C] Listener on port %d \n", Master.port);
     //try to specify maximum of 3 pending connections for the master socket
-    if (listen(Master.master_socket, 3) < 0) stop("Listen() : ");
+    if (listen(Master.master_socket, 3) < 0) stop("[C] Listen() : ");
      
     //accept the incoming connection
     Master.addrlen = sizeof(Master.address);
@@ -186,11 +189,11 @@ static PyObject* listen_and_accept(PyObject* self) {
 void Cpeer_create_bind_listen_and_accept(void) {
     //create a peer socket
     if ((Peer.master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0) 
-	stop("Socket() failed : ");
+	stop("[C] Socket() failed : ");
  
     // set master socket to allow multiple connections 
     if( setsockopt(Peer.master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&Peer.opt, sizeof(Peer.opt)) < 0 ) 
-	stop("SocketPeer.opt : ");
+	stop("[C] SocketPeer.opt : ");
  
     //type of socket created
     Peer.address.sin_family = AF_INET;
@@ -199,15 +202,15 @@ void Cpeer_create_bind_listen_and_accept(void) {
      
     //bind the socket 
     if (bind(Peer.master_socket, (struct sockaddr *)&Peer.address, sizeof(Peer.address))<0) 
-	stop("Bind() failed : ");
-    printf("Peer : Create and bind port %i successfully!\n", Peer.port);
+	stop("[C] Bind() failed : ");
+    printf("[C] [C] Peer : Create and bind port %i successfully!\n", Peer.port);
     // listen 
-    printf("Peer listen on port %i \n", Peer.port);
-    if (listen(Peer.master_socket, 3) < 0) stop("Listen() : ");
+    printf("[C] [C] Peer listen on port %i \n", Peer.port);
+    if (listen(Peer.master_socket, 3) < 0) stop("[C] Listen() : ");
 
     //accept
     Peer.addrlen = sizeof(Peer.address);
-    puts("Peer waitting for connections ...");
+    puts("Peer is waiting for connections ...");
 }
 
 static PyObject* peer_create_bind_listen_and_accept(PyObject* self, PyObject* args) {
@@ -223,11 +226,11 @@ static PyObject* peer_create_bind_listen_and_accept(PyObject* self, PyObject* ar
 void Ccreate_and_bind(void) {
     //create a master socket
     if ((Master.master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0) 
-	stop("Socket() failed : ");
+	stop("[C] Socket() failed : ");
  
     // set master socket to allow multiple connections 
     if( setsockopt(Master.master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&Master.opt, sizeof(Master.opt)) < 0 ) 
-	stop("SocketMaster.opt : ");
+	stop("[C] SocketMaster.opt : ");
  
     //type of socket created
     Master.address.sin_family = AF_INET;
@@ -236,8 +239,8 @@ void Ccreate_and_bind(void) {
      
     //bind the socket 
     if (bind(Master.master_socket, (struct sockaddr *)&Master.address, sizeof(Master.address))<0) 
-	stop("Bind() failed : ");
-    printf("Create and bind successfully!\n");
+	stop("[C] Bind() failed : ");
+    printf("[C] [C] Create and bind successfully!\n");
 }
 
 static PyObject* create_and_bind(PyObject* self, PyObject* args) {
@@ -255,10 +258,10 @@ static PyObject* create_and_bind(PyObject* self, PyObject* args) {
 //then its an incoming connection
 void Cincomming_connection(void) {
     if (FD_ISSET(Master.master_socket, &Master.readfds)) {
-	if ((new_socket = accept(Master.master_socket, (struct sockaddr *)&Master.address, (socklen_t*)&Master.addrlen)) < 0) stop("Accept function ! ");
+	if ((new_socket = accept(Master.master_socket, (struct sockaddr *)&Master.address, (socklen_t*)&Master.addrlen)) < 0) stop("[C] Accept function ! ");
 	char* new_connection_ip = inet_ntoa(Master.address.sin_addr);
 	int new_connection_port = ntohs(Master.address.sin_port);
-	printf("New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , new_connection_ip, new_connection_port);
+	printf("[C] New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , new_connection_ip, new_connection_port);
 	
 	// add new socket to the table peer socket
 	int new_id=-1;
@@ -313,7 +316,7 @@ void Cincomming_message(void) {
 	    if ((val_read = read(sd, Master.buffer, BUF_SIZE)) == 0) {
 		// Someone disconnected, print the details
 		getpeername(sd, (struct sockaddr*)&Master.address, (socklen_t*)&Master.addrlen);
-		printf("Host disconnected, ip %s, port %d \n", inet_ntoa(Master.address.sin_addr), ntohs(Master.address.sin_port));
+		printf("[C] Host disconnected, ip %s, port %d \n", inet_ntoa(Master.address.sin_addr), ntohs(Master.address.sin_port));
 		close(sd);
 		Master.peer_socket[i].fd = 0;
 		// Send message to all others Peers to inform
@@ -323,7 +326,7 @@ void Cincomming_message(void) {
 	    // Print the messgage received
 	    else {
 		Master.buffer[val_read] = '\0';
-		printf("Message received : %s", Master.buffer);
+		printf("[C] Message received : %s", Master.buffer);
 	    }
 	}
     }
@@ -336,13 +339,13 @@ void Cincomming_message(void) {
 // --------------------------------------------------------
 // -------------- Master peer start loop ------------------
 void* Cmaster_loop(void *args) {
-    printf("Running = %i\n", Master.running_master_thread);
+    printf("[C] Running = %i\n", Master.running_master_thread);
     // while running is True : 
     // 1. listen and accept others Peers 
     // 2. when accept => send welcome packet 
     // (all the addresse of others peers)
     while (Master.running_master_thread){
-	printf("Thread C is running \n");
+	printf("[C] Thread C is running \n");
 	// Initializes the file descriptor set fdset to have zero bits 
 	// for all file descriptors
 	FD_ZERO(&Master.readfds);
@@ -368,7 +371,7 @@ void* Cmaster_loop(void *args) {
 	//wait for an activity on one of the sockets,
 	//timeout is NULL , so wait indefinitely 
 	activity = select(Master.max_sd + 1, &Master.readfds, NULL, NULL, NULL);
-	if ((activity<0) && (errno != EINTR)) stop("Select error! ");
+	if ((activity<0) && (errno != EINTR)) stop("[C] Select error! ");
 
 	Cincomming_connection();
 
@@ -376,7 +379,7 @@ void* Cmaster_loop(void *args) {
 
 	sleep(0.1);
     }
-    printf("Master thread stopped!\n");
+    printf("[C] Master thread stopped!\n");
     return NULL;
 }
 
@@ -385,9 +388,9 @@ void Cmaster_peer_start_loop(void) {
     Cinit_master_peer();
     Master.running_master_thread = true;
     // Create Thread LOOP
-    printf("Python create C thread - multiplayers!\n");
+    printf("[C] Python create C-master-thread - multiplayers!\n");
     if (pthread_create(&master_thread, NULL, &Cmaster_loop, NULL)) 
-	stop("Creation thread failed ! "); // 0 = ok ; >0 = error
+	stop("[C] Creation thread failed ! "); // 0 = ok ; >0 = error
 
 }
 
@@ -420,7 +423,7 @@ static PyObject* master_peer_end_loop(PyObject* self) {
 char* Cpeer_receive_from_master(void) {
     bzero(Peer.buffer, 1024);
     if (recv(Peer.master_file_desc, Peer.buffer, 1023, 0) < 0) {
-	if (errno != EAGAIN) perror("Peer_receive_from_master failed! ");
+	if (errno != EAGAIN) perror("[C] Peer_receive_from_master failed! ");
     } 
     return Peer.buffer ;
 }
@@ -443,7 +446,7 @@ int Cpeer_connect_to(int connect_port, char* connect_ip) {
 
     // Create socket
     if ((socket_desc = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
-	perror("Creation socket failed !" );
+	perror("[C] Creation socket failed !" );
 
     dest.sin_addr.s_addr = inet_addr(connect_ip);
     dest.sin_family = AF_INET;
@@ -451,18 +454,41 @@ int Cpeer_connect_to(int connect_port, char* connect_ip) {
 
     // Connect to remote destination
     if (connect(socket_desc, (struct sockaddr *)&dest, sizeof(dest)) < 0) 
-	perror("Connect failed !");
+	perror("[C] Connect failed !");
     else  
-	printf("Connected to %s\n" , connect_ip);
+	printf("[C] Connected to %s\n" , connect_ip);
     return socket_desc;
 }
 
-static PyObject* peer_connect_to(PyObject* self, PyObject* args) {
+// ------------------Peer connect to peer ------------------------
+static PyObject* peer_connect_to_peer(PyObject* self, PyObject* args) {
+    int connect_port;
+    int connect_id;
+    char* connect_ip;// bzero(connect_ip, 20); 
+    // get 2 arguments from the function
+    if (!PyArg_ParseTuple(args, "iis",&connect_id, &connect_port,  &connect_ip)) return NULL;
+    printf("[C] Connecting to peer whose port : %i and ip: %s ... " ,connect_port, connect_ip);
+    // Add file descriptor of new peer to a table
+    if (Peer.number_of_other_peers < MAX_CONNECTION) {
+	int p = Peer.number_of_other_peers; Peer.number_of_other_peers++;
+	Peer.peer_socket[p].fd =  Cpeer_connect_to(connect_port, connect_ip);
+	Peer.peer_socket[p].ip = connect_ip;
+	Peer.peer_socket[p].port = connect_port;
+	Peer.peer_socket[p].id = connect_id;
+	printf("[C] Connected to player %i\n", connect_id);
+    } else {
+	printf("[C] Can't establish new connection because it reached the maximum !\n");
+    }
+    return Py_BuildValue("s", "Success");
+}
+
+// ------------------Peer connect to master ------------------------
+static PyObject* peer_connect_to_master(PyObject* self, PyObject* args) {
     int connect_port;
     char* connect_ip;// bzero(connect_ip, 20); 
     // get 2 arguments from the function
     if (!PyArg_ParseTuple(args, "is", &connect_port,  &connect_ip)) return NULL;
-    printf("Connecting to port : %i, ip: %s ... " ,connect_port, connect_ip);
+    printf("[C] Connecting to master port : %i, ip: %s ... " ,connect_port, connect_ip);
     Cinit_normal_peer();
     Peer.master_file_desc =  Cpeer_connect_to(connect_port, connect_ip);
     return Py_BuildValue("s", "Success");
@@ -470,14 +496,82 @@ static PyObject* peer_connect_to(PyObject* self, PyObject* args) {
 // ---------------------------------------------------------
 // ---------------------------------------------------------
 
+// --------------------------------------------------------
+// -------------- Normal peer start loop ------------------
+void* Cpeer_loop(void *args) {
+    printf("[C] Peer's loop is running ...\n");
+    // while running is True : 
+    // 1. listen and accept others Peers 
+    // 2. when accept => send welcome packet 
+    // (all the addresse of others peers)
+    while (Peer.running_master_thread){
+	/*printf("[C] Thread C is running \n");*/
+	// Initializes the file descriptor set fdset to have zero bits 
+	// for all file descriptors
+	FD_ZERO(&Peer.readfds);
+
+	// add master socket to the set
+	FD_SET(Peer.master_socket, &Peer.readfds);
+	Peer.max_sd = Peer.master_socket;
+	
+	// add peer's socket to the set of file descriptors
+	for (int i=0; i<Peer.max_peer; i++) {
+	    // socket descriptors
+	    sd = Peer.peer_socket[i].fd;
+
+	    // if sd==0 : haven't  connection
+	    // else : it's a valid socket descriptor => add to the list
+	    if (sd>0) FD_SET(sd, &Peer.readfds);
+
+	    //highest file descriptor number,
+	    //need it for the select function
+	    if (sd > Peer.max_sd) Peer.max_sd = sd;
+	}
+
+	//wait for an activity on one of the sockets,
+	//timeout is NULL , so wait indefinitely 
+	activity = select(Peer.max_sd + 1, &Peer.readfds, NULL, NULL, NULL);
+	if ((activity<0) && (errno != EINTR)) stop("[C] Select error! ");
+
+	/*Cincomming_connection();*/
+
+	/*Cincomming_message();*/
+
+	sleep(0.1);
+    }
+    printf("[C] Peer thread stopped!\n");
+    return NULL;
+}
+
+void Cnormal_peer_start_loop(void) {
+    // Init the struct
+    Cinit_normal_peer();
+    Peer.running_master_thread = true;
+    // Create Thread LOOP
+    printf("[C] Python create C thread : run peer_loop!\n");
+    if (pthread_create(&peer_thread, NULL, &Cpeer_loop, NULL)) 
+	stop("[C] Creation thread failed ! "); // 0 = ok ; >0 = error
+
+}
+
+static PyObject* normal_peer_start_loop(PyObject* self) {
+	Cnormal_peer_start_loop();
+	return Py_BuildValue("s", "Success");
+}
+// ---------------------------------------------------------
+// ---------------------------------------------------------
+
+
 
 // ------------------ Build Module --------------------------
 // ----------------------------------------------------------
 // If a method hasn't arguments => you must add (PyCFunction)
 static PyMethodDef networkMethods[] = { // (PyCFunction)
+    {"peer_connect_to_peer", peer_connect_to_peer, METH_VARARGS, "Create a connection to an other peer by an addresse and a port specify"},
+    {"normal_peer_start_loop", (PyCFunction)normal_peer_start_loop, METH_NOARGS, "Start normal peer loop, to wait for connections"},
     {"peer_create_bind_listen_and_accept", peer_create_bind_listen_and_accept, METH_VARARGS, "Create and bind socket normal peer"},
     {"peer_receive_from_master", (PyCFunction)peer_receive_from_master, METH_NOARGS, "Receive packet (string) from master"},
-    {"peer_connect_to", peer_connect_to, METH_VARARGS, "Create a connection to a addresse and port specify"},
+    {"peer_connect_to_master", peer_connect_to_master, METH_VARARGS, "Create a connection to master_peer by an addresse and a port specify"},
     {"master_peer_end_loop", (PyCFunction)master_peer_end_loop, METH_NOARGS, "End master peer loop"},
     {"master_peer_start_loop", (PyCFunction)master_peer_start_loop, METH_NOARGS, "Start master peer loop, to wait for connections"},
     {"listen_and_accept", (PyCFunction)listen_and_accept, METH_NOARGS, "Create and bind socket master"},

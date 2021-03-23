@@ -25,7 +25,7 @@ class Network:
 	def init_peer(self):
 		ip = "127.0.0.1"
 		port = 2510
-		Cnetwork.peer_connect_to(port, ip)
+		Cnetwork.peer_connect_to_master(port, ip)
 		#Cnetwork.data_peer_start_loop()
 		#Cnetwork.data_peer_end_loop()
 		first_rev = True
@@ -46,11 +46,15 @@ class Network:
 						myPort = int(myPort) + 1 
 						# Bind a socket data
 						Cnetwork.peer_create_bind_listen_and_accept(myPort)
+						Cnetwork.normal_peer_start_loop()
 						for i in range(2, len(welcome)):
 							if (welcome[i] != ''):
 								newId, newIp, newPort = welcome[i].split(",")
 								print("New connection: ")
 								print(newId, newIp, newPort)
+								newId = int(newId)  
+								newPort = int(newPort) + 1 
+								Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
 					elif welcome[0] == "Disconnected":
 						print("Player " + welcome[1] + " was disconnected!")
 					else:
