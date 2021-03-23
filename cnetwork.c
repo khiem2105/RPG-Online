@@ -109,19 +109,32 @@ void Cinit_normal_peer(void) {
 
 // thread which runs master_loop
 pthread_t master_thread;
-pthread_t data_thread;
+pthread_t peer_thread;
 // -------------------END Delaration variable ---------------------
 // ---------------------------------------------------------------
 
 
-// -------------------------------------------------------
+// --------COLLECTION OF FUNCTIONS "PASSE PARTOUT"-------------
 // ------------- STOP = PERROR + EXIT -------------------
 void stop(char* msg) {
 	perror(msg);
 	exit(EXIT_FAILURE);
 }
-// -------------------------------------------------------
-// -------------------------------------------------------
+// --------------- Send Message Function------------------------
+void Csend_message(int soc, char* message) {
+    if ((size_t)send(soc, message, strlen(message), 0) != strlen(message)) 
+	stop("Send message function !");
+}
+//------ LOOP TO ALL PEER and send a message USING GLOBAL_BUF  -------------
+void Csend_message_to_all_others_peer(void) {
+    for (int i=0; i<Master.max_peer; i++) {
+	if (Master.peer_socket[i].fd != 0) {
+	    Csend_message(Master.peer_socket[i].fd, global_buf);
+	}
+    }
+}
+// -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
 
 
 // -------------------------------------------------------
@@ -170,7 +183,7 @@ static PyObject* listen_and_accept(PyObject* self) {
 
 // -------------------------------------------------------
 // --------------- Peer Create and Bind -----------------
-void Cpeer_create_and_bind(void) {
+void Cpeer_create_bind_listen_and_accept(void) {
     //create a peer socket
     if ((Peer.master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0) 
 	stop("Socket() failed : ");
@@ -187,12 +200,19 @@ void Cpeer_create_and_bind(void) {
     //bind the socket 
     if (bind(Peer.master_socket, (struct sockaddr *)&Peer.address, sizeof(Peer.address))<0) 
 	stop("Bind() failed : ");
-    printf("Create and bind successfully!\n");
+    printf("Peer : Create and bind port %i successfully!\n", Peer.port);
+    // listen 
+    printf("Peer listen on port %i \n", Peer.port);
+    if (listen(Peer.master_socket, 3) < 0) stop("Listen() : ");
+
+    //accept
+    Peer.addrlen = sizeof(Peer.address);
+    puts("Peer waitting for connections ...");
 }
 
-static PyObject* peer_create_and_bind(PyObject* self, PyObject* args) {
+static PyObject* peer_create_bind_listen_and_accept(PyObject* self, PyObject* args) {
 	if (!PyArg_ParseTuple(args, "i", &Peer.port)) return NULL;
-	Cpeer_create_and_bind();
+	Cpeer_create_bind_listen_and_accept();
 	return Py_BuildValue("s", "Success");
 }
 // ---------------------------------------------------------
@@ -224,16 +244,6 @@ static PyObject* create_and_bind(PyObject* self, PyObject* args) {
 	if (!PyArg_ParseTuple(args, "i", &Master.port)) return NULL;
 	Ccreate_and_bind();
 	return Py_BuildValue("s", "Success");
-}
-// ---------------------------------------------------------
-// ---------------------------------------------------------
-
-
-// -------------------------------------------------------
-// --------------- Send Message Function------------------------
-void Csend_message(int soc, char* message) {
-    if ((size_t)send(soc, message, strlen(message), 0) != strlen(message)) 
-	stop("Send message function !");
 }
 // ---------------------------------------------------------
 // ---------------------------------------------------------
@@ -306,6 +316,9 @@ void Cincomming_message(void) {
 		printf("Host disconnected, ip %s, port %d \n", inet_ntoa(Master.address.sin_addr), ntohs(Master.address.sin_port));
 		close(sd);
 		Master.peer_socket[i].fd = 0;
+		// Send message to all others Peers to inform
+		sprintf(global_buf, "Disconnected;%i;", i);
+		Csend_message_to_all_others_peer();	
 	    }
 	    // Print the messgage received
 	    else {
@@ -405,6 +418,7 @@ static PyObject* master_peer_end_loop(PyObject* self) {
 // --------------------------------------------------------
 // ------------------ Peer receive from master -----------------
 char* Cpeer_receive_from_master(void) {
+    bzero(Peer.buffer, 1024);
     if (recv(Peer.master_file_desc, Peer.buffer, 1023, 0) < 0) {
 	if (errno != EAGAIN) perror("Peer_receive_from_master failed! ");
     } 
@@ -461,7 +475,7 @@ static PyObject* peer_connect_to(PyObject* self, PyObject* args) {
 // ----------------------------------------------------------
 // If a method hasn't arguments => you must add (PyCFunction)
 static PyMethodDef networkMethods[] = { // (PyCFunction)
-    {"peer_create_and_bind", peer_create_and_bind, METH_VARARGS, "Create and bind socket normal peer"},
+    {"peer_create_bind_listen_and_accept", peer_create_bind_listen_and_accept, METH_VARARGS, "Create and bind socket normal peer"},
     {"peer_receive_from_master", (PyCFunction)peer_receive_from_master, METH_NOARGS, "Receive packet (string) from master"},
     {"peer_connect_to", peer_connect_to, METH_VARARGS, "Create a connection to a addresse and port specify"},
     {"master_peer_end_loop", (PyCFunction)master_peer_end_loop, METH_NOARGS, "End master peer loop"},
