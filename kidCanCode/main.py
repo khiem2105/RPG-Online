@@ -111,6 +111,8 @@ class Game:
                              tile_object.y + tile_object.height / 2)
             if tile_object.name == 'player':
                 self.player = Player(self, obj_center.x, obj_center.y)
+                #add other_player test version
+                self.other_player= OtherPlayer(self,obj_center.x, obj_center.y) 
             if tile_object.name == 'zombie':
                 Mob(self, obj_center.x, obj_center.y)
             if tile_object.name == 'wall':
