@@ -32,6 +32,7 @@ def draw_player_health(surf, x, y, pct):
 
 class Game:
     def __init__(self):
+        self.network = Network(self)
         pg.mixer.pre_init(44100, -16, 4, 2048)
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -139,6 +140,13 @@ class Game:
             if not self.paused:
                 self.update()
             self.draw()
+            if self.network.is_master:
+                self.network.run_master()
+            else:
+                if self.network.first_message:
+                    self.network.receive_first_message()
+                else:
+                    self.network.run_peer()
 
     def quit(self):
         pg.quit()

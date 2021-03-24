@@ -1,7 +1,6 @@
 setup: 
 	clear
 	sudo python3 setup.py install
-	python3 main.py
 .PHONY: all test clean
 
 clean:

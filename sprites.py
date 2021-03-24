@@ -157,13 +157,23 @@ class OtherPlayer(pg.sprite.Sprite):
     #     self.damaged = True
     #     self.damage_alpha = chain(DAMAGE_ALPHA * 4)
 
-    def updateKey(self):
+    def updateKey(self, key):
         self.rot_speed=0
-        pass
+        self.vel = vec(0, 0)
+        if key == 'L': 
+            self.rot_speed = PLAYER_ROT_SPEED
+        if key == 'R': 
+            self.rot_speed = -PLAYER_ROT_SPEED
+        if key == 'U': 
+            self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
+        if key == 'D': 
+            self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
+        if key == 'S': 
+            self.shoot()
 
     def update(self):
         # self.get_keys()
-        self.updateKey()
+        self.rot_speed=0
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
         if self.damaged:
