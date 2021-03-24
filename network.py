@@ -54,9 +54,10 @@ class Network:
         self.num_other_players = 0
         Cnetwork.peer_connect_to_master(port, ip)
     
-    def run_peer(self):
+    def run_peer(self,key):
         # send 
-        Cnetwork.peer_send_all("Data;U;")
+        message="Data;"+key+";"
+        Cnetwork.peer_send_all(message)
         # receive master
         #  welcome = Cnetwork.peer_receive_from_master()
         #  if welcome != None:
@@ -75,11 +76,20 @@ class Network:
     def peer_get_data(self):
         try:
             data = Cnetwork.peer_get_message_from_player(0)
+            print(data)
             if data != None:
                 data = data.split(';')
                 if data[0] == "Data":
                     #  x, y = data[1].split(',')
                     key = data[1]
+                    print(key)
+                    self.game.other_player_list[0].updateKey(key)
+            data1 = Cnetwork.peer_get_message_from_player(1)
+            if data1 != None:
+                data1 = data1.split(';')
+                if data1[0] == "Data":
+                    #  x, y = data[1].split(',')
+                    key = data1[1]
                     print(key)
                     self.game.other_player_list[0].updateKey(key)
         except Exception as E:

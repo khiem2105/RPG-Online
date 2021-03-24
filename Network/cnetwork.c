@@ -722,9 +722,10 @@ static PyObject* set_my_id(PyObject* self, PyObject* args) {
 char* Cpeer_get_message_from_player(int index) {
     // Master isn't in the peer_socket
     // so => index == -1 to get the last_message of Master
-    char buffer2[BUF_SIZE]; strcpy(buffer2, Peer.peer_socket[index].last_message);
-    bzero(Peer.peer_socket[index].last_message, BUF_SIZE);
-    return buffer2;
+    // char buffer2[BUF_SIZE]; strcpy(buffer2, Peer.peer_socket[index].last_message);
+    // bzero(Peer.peer_socket[index].last_message, BUF_SIZE);
+    // return buffer2;
+	return Peer.peer_socket[index].last_message;
 }
 
 static PyObject* peer_get_message_from_player(PyObject* self, PyObject* args) {
