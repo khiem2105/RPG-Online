@@ -162,40 +162,6 @@ void Cpeer_send_message_to_all_others_peer(void) {
 	}
     }
 }
-<<<<<<< HEAD:cnetwork.c
-//------ FOR PYTHON : PEERs LOOP TO ALL PEER and send a message by arguments  -------------
-void Cpeer_send_all(char* message) {
-    // send to master :
-    Csend_message(Peer.master_file_desc, message);
-    // send to all peers
-    for (int i=0; i<Peer.max_peer; i++) {
-	if (Peer.peer_socket[i].fd != 0) {
-	    Csend_message(Peer.peer_socket[i].fd, message);
-	}
-    }
-}
-
-static PyObject* peer_send_all(PyObject* self, PyObject* args) {
-    char * message;
-    if (!PyArg_ParseTuple(args, "s", &message)) return NULL;
-    Cpeer_send_all(message);
-    return Py_BuildValue("s", "Success");
-}
-//------ FOR PYTHON : MASTER LOOP TO ALL PEERs and send a message by arguments  -------------
-void Cmaster_send_all(char* message) {
-    for (int i=0; i<Master.max_peer; i++) {
-	if (Master.peer_socket[i].fd != 0) {
-	    Csend_message(Master.peer_socket[i].fd, message);
-	}
-    }
-}
-
-static PyObject* master_send_all(PyObject* self, PyObject* args) {
-    char * message;
-    if (!PyArg_ParseTuple(args, "s", &message)) return NULL;
-    Cmaster_send_all(message);
-    return Py_BuildValue("s", "Success");
-=======
 
 void Cpeer_send_message_to_all_others_peer_v2(char *message) {
 	for (int i=0; i<Peer.max_peer; i++) {
@@ -209,9 +175,8 @@ static PyObject* peer_send_message_to_all_other_peer(PyObject* self, PyObject* a
 	char *message;
 	if(!PyArg_ParseTuple(args, "s", &message))
 		return NULL;
-	Cpeer_send_message_to_all_other_peer_v2(message);
+	Cpeer_send_message_to_all_others_peer_v2(message);
 	return Py_BuildValue("s", "success");
->>>>>>> 3d6b036f36357ec9b526bba90846147d68ede64a:Network/cnetwork.c
 }
 // -------------------------------------------------------------------------
 // -------------------------------------------------------------------------
@@ -752,8 +717,6 @@ static PyObject* master_get_message_from_player(PyObject* self, PyObject* args) 
 // ----------------------------------------------------------
 // If a method hasn't arguments => you must add (PyCFunction)
 static PyMethodDef networkMethods[] = { // (PyCFunction)
-    {"master_send_all", master_send_all, METH_VARARGS, "MASTER send message to all Peers"},
-    {"peer_send_all", peer_send_all, METH_VARARGS, "Peer send message to Master + all Peers"},
     {"master_get_message_from_player", peer_get_message_from_player, METH_VARARGS, "Master get message from player with id"},
     {"peer_get_message_from_player", master_get_message_from_player, METH_VARARGS, "Peer get message from player with id; -1 for master"},
     {"set_my_id", set_my_id, METH_VARARGS, "Set id received from master"},
@@ -767,8 +730,8 @@ static PyMethodDef networkMethods[] = { // (PyCFunction)
     {"listen_and_accept", (PyCFunction)listen_and_accept, METH_NOARGS, "Create and bind socket master"},
     {"create_and_bind", create_and_bind, METH_VARARGS, "Create and bind socket master"},
     {"get_ip_public", (PyCFunction)get_ip_public, METH_NOARGS, "Get IP public of this machine"},
-	{"master_send_message_to_all_others_peer", master_send_message_to_all_others_peer, METH_VARARGS, "Send a message from master peer to all others peer"},
-	{"peer_send_message_to_all_others_peer", peer_send_message_to_all_others_peer, METH_VARARGS, "Send a message from a peer to all anothers peer"},
+	{"master_send_message_to_all_other_peer", master_send_message_to_all_other_peer, METH_VARARGS, "Send a message from master peer to all others peer"},
+	{"peer_send_message_to_all_other_peer", peer_send_message_to_all_other_peer, METH_VARARGS, "Send a message from a peer to all anothers peer"},
     {NULL, NULL, 0, NULL} // terminator
 };
 
