@@ -88,7 +88,7 @@ class Player(pg.sprite.Sprite):
         self.damage_alpha = chain(DAMAGE_ALPHA * 4)
 
     def update(self):
-        if self.get_keys():
+        if self.get_keys() and not self.game.network.is_master :
             self.game.network.run_peer()
         
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360

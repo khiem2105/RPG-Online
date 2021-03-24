@@ -752,8 +752,8 @@ static PyObject* master_get_message_from_player(PyObject* self, PyObject* args) 
 static PyMethodDef networkMethods[] = { // (PyCFunction)
     {"master_send_all", master_send_all, METH_VARARGS, "MASTER send message to all Peers"},
     {"peer_send_all", peer_send_all, METH_VARARGS, "Peer send message to Master + all Peers"},
-    {"master_get_message_from_player", peer_get_message_from_player, METH_VARARGS, "Master get message from player with id"},
-    {"peer_get_message_from_player", master_get_message_from_player, METH_VARARGS, "Peer get message from player with id; -1 for master"},
+    {"master_get_message_from_player", master_get_message_from_player, METH_VARARGS, "Master get message from player with id"},
+    {"peer_get_message_from_player", peer_get_message_from_player, METH_VARARGS, "Peer get message from player with id; -1 for master"},
     {"set_my_id", set_my_id, METH_VARARGS, "Set id received from master"},
     {"peer_connect_to_peer", peer_connect_to_peer, METH_VARARGS, "Create a connection to an other peer by an addresse and a port specify"},
     {"normal_peer_start_loop", (PyCFunction)normal_peer_start_loop, METH_NOARGS, "Start normal peer loop, to wait for connections"},

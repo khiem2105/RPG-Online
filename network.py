@@ -70,16 +70,16 @@ class Network:
                 pass
         
         # Get data from other peers
-        try:
-            data = peer_get_message_from_player(0)
-            data = data.split(';')
-            if data[0] == "Data":
-                #  x, y = data[1].split(',')
-                key = data[1]
-                print(key)
-                self.game.other_player_list[0].updateKey(key)
-        except:
-            pass
+        #  try:
+        #      data = peer_get_message_from_player(0)
+        #      data = data.split(';')
+        #      if data[0] == "Data":
+        #          #  x, y = data[1].split(',')
+        #          key = data[1]
+        #          print(key)
+        #          self.game.other_player_list[0].updateKey(key)
+        #  except Exception as E:
+        #      print(str(E))
                 
            
     def receive_first_message(self):
