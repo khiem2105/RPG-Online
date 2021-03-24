@@ -1,3 +1,17 @@
+# KidsCanCode - Game Development with Pygame video series
+# Tile-based game - Part 23
+# Lighting Effect
+# Video link: https://youtu.be/IWm5hi5Yrvk
+import pygame as pg
+import sys
+from random import choice, random
+from os import path
+from settings import *
+from sprites import *
+from tilemap import *
+from network import *
+
+
 # HUD functions
 def draw_player_health(surf, x, y, pct):
     if pct < 0:
