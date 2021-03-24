@@ -36,6 +36,7 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
+        self.other_player_list=[]
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
@@ -111,6 +112,8 @@ class Game:
                              tile_object.y + tile_object.height / 2)
             if tile_object.name == 'player':
                 self.player = Player(self, obj_center.x, obj_center.y)
+                #add other_player test version
+                self.other_player_list.append( OtherPlayer(self,obj_center.x, obj_center.y) )
             if tile_object.name == 'zombie':
                 Mob(self, obj_center.x, obj_center.y)
             if tile_object.name == 'wall':
