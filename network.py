@@ -40,9 +40,11 @@ class Network:
         #  time.sleep(360)
         #  Cnetwork.master_peer_end_loop()
         #  print("[Python] Pythoon wake up, and shutdown C master loop!")
+
+
     def run_master(self):
         # Send data of master to all peers
-        Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
+        # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
         # Receive data of peers
         pass
 	
@@ -55,6 +57,7 @@ class Network:
     def run_peer(self):
         # send 
         Cnetwork.peer_send_all("Data;U;")
+        
         # receive master
         welcome = Cnetwork.peer_receive_from_master()
         if welcome != None:
@@ -73,6 +76,7 @@ class Network:
             if data[0] == "Data":
                 #  x, y = data[1].split(',')
                 key = data[1]
+                print(key)
                 self.game.other_player_list[0].updateKey(key)
         except:
             pass
@@ -96,13 +100,16 @@ class Network:
             Cnetwork.normal_peer_start_loop()
             for i in range(2, len(welcome)):
                 if (welcome[i] != ''):
-                    newId, newIp, newPort = welcome[i].split(",")
-                    print("[Python] New connection: ", newId, newIp, newPort)
-                    newId = int(newId)  
-                    newPort = int(newPort) + 1 
-                    Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
-                    # each iteration = 1 peer
-                    self.number_peers += 1
+                    try:
+                        newId, newIp, newPort = welcome[i].split(",")
+                        print("[Python] New connection: ", newId, newIp, newPort)
+                        newId = int(newId)  
+                        newPort = int(newPort) + 1 
+                        Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
+                        # each iteration = 1 peer
+                        self.number_peers += 1
+                    except:
+                        pass
             self.first_message = False
 
     def trash(self):
@@ -151,6 +158,3 @@ class Network:
             #  print(Cnetwork.peer_get_message_from_player(1) )
             Cnetwork.peer_send_all("THIS IS PEER")
             time.sleep(2)
-
-
-Network()

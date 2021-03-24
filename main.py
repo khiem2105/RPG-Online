@@ -145,8 +145,8 @@ class Game:
             else:
                 if self.network.first_message:
                     self.network.receive_first_message()
-                else:
-                    self.network.run_peer()
+                # else:
+                #     self.network.run_peer()
 
     def quit(self):
         pg.quit()

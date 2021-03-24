@@ -1,3 +1,4 @@
+from os import truncate
 import pygame as pg
 from random import uniform, choice, randint, random
 from settings import *
@@ -51,14 +52,20 @@ class Player(pg.sprite.Sprite):
         keys = pg.key.get_pressed()
         if keys[pg.K_LEFT] or keys[pg.K_a]:
             self.rot_speed = PLAYER_ROT_SPEED
+            return True
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             self.rot_speed = -PLAYER_ROT_SPEED
+            return True
         if keys[pg.K_UP] or keys[pg.K_w]:
             self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
+            return True
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
+            return True
         if keys[pg.K_SPACE]:
             self.shoot()
+            return True
+        return False
 
     def shoot(self):
         now = pg.time.get_ticks()
@@ -81,7 +88,9 @@ class Player(pg.sprite.Sprite):
         self.damage_alpha = chain(DAMAGE_ALPHA * 4)
 
     def update(self):
-        self.get_keys()
+        if self.get_keys():
+            self.game.network.run_peer()
+        
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
         if self.damaged:
