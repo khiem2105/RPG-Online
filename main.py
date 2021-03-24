@@ -9,6 +9,8 @@ from os import path
 from settings import *
 from sprites import *
 from tilemap import *
+from network import *
+
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
