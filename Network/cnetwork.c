@@ -162,40 +162,6 @@ void Cpeer_send_message_to_all_others_peer(void) {
 	}
     }
 }
-<<<<<<< HEAD:cnetwork.c
-//------ FOR PYTHON : PEERs LOOP TO ALL PEER and send a message by arguments  -------------
-void Cpeer_send_all(char* message) {
-    // send to master :
-    Csend_message(Peer.master_file_desc, message);
-    // send to all peers
-    for (int i=0; i<Peer.max_peer; i++) {
-	if (Peer.peer_socket[i].fd != 0) {
-	    Csend_message(Peer.peer_socket[i].fd, message);
-	}
-    }
-}
-
-static PyObject* peer_send_all(PyObject* self, PyObject* args) {
-    char * message;
-    if (!PyArg_ParseTuple(args, "s", &message)) return NULL;
-    Cpeer_send_all(message);
-    return Py_BuildValue("s", "Success");
-}
-//------ FOR PYTHON : MASTER LOOP TO ALL PEERs and send a message by arguments  -------------
-void Cmaster_send_all(char* message) {
-    for (int i=0; i<Master.max_peer; i++) {
-	if (Master.peer_socket[i].fd != 0) {
-	    Csend_message(Master.peer_socket[i].fd, message);
-	}
-    }
-}
-
-static PyObject* master_send_all(PyObject* self, PyObject* args) {
-    char * message;
-    if (!PyArg_ParseTuple(args, "s", &message)) return NULL;
-    Cmaster_send_all(message);
-    return Py_BuildValue("s", "Success");
-=======
 
 void Cpeer_send_message_to_all_others_peer_v2(char *message) {
 	for (int i=0; i<Peer.max_peer; i++) {
@@ -211,7 +177,6 @@ static PyObject* peer_send_message_to_all_other_peer(PyObject* self, PyObject* a
 		return NULL;
 	Cpeer_send_message_to_all_other_peer_v2(message);
 	return Py_BuildValue("s", "success");
->>>>>>> 3d6b036f36357ec9b526bba90846147d68ede64a:Network/cnetwork.c
 }
 // -------------------------------------------------------------------------
 // -------------------------------------------------------------------------
