@@ -78,34 +78,34 @@ void Cinit_master_peer(void) {
 //-------------------- PEER ----------------------
 // Data of Peer
 struct NormalPeer {
-    int master_file_desc;
-    struct sockaddr_in address;
-    int master_socket;
-    int opt;
-    int port;
-    int addrlen;
-    int max_sd;
-    char buffer[BUF_SIZE];
-    int number_of_other_peers;
-    // table of other peer's socket
-    struct PeerSocket peer_socket[5];
-    int max_peer;
-    int myId;
-    // variable which maintains the master loop 
-    bool running_master_thread;
+int master_file_desc;
+struct sockaddr_in address;
+int master_socket;
+int opt;
+int port;
+int addrlen;
+int max_sd;
+char buffer[BUF_SIZE];
+int number_of_other_peers;
+// table of other peer's socket
+struct PeerSocket peer_socket[5];
+int max_peer;
+int myId;
+// variable which maintains the master loop 
+bool running_master_thread;
 
-    fd_set readfds;
+fd_set readfds;
 };
 
 //Initialization
 struct NormalPeer Peer;
 void Cinit_normal_peer(void) {
-    bzero(Peer.buffer, BUF_SIZE);
-    Peer.opt = 1;
-    Peer.running_master_thread = false;
-    Peer.max_peer = 5;
-    Peer.number_of_other_peers = 0;
-    memset(Peer.peer_socket, 0, sizeof(Master.peer_socket));
+bzero(Peer.buffer, BUF_SIZE);
+Peer.opt = 1;
+Peer.running_master_thread = false;
+Peer.max_peer = 5;
+Peer.number_of_other_peers = 0;
+memset(Peer.peer_socket, 0, sizeof(Master.peer_socket));
 }
 //--------------------END PEER ----------------------
 
@@ -486,8 +486,18 @@ static PyObject* peer_connect_to_peer(PyObject* self, PyObject* args) {
 	Peer.peer_socket[p].id = connect_id;
 	printf("[C] Connected to player %i\n", connect_id);
 	// Send id to the peer connected
+	// First message + id : F%i
 	sprintf(global_buf, "F%i", Peer.myId);
 	Csend_message(Peer.peer_socket[p].fd , global_buf);
+	int sd = Peer.peer_socket[p].fd;
+	// if sd==0 : haven't  connection
+	// else : it's a valid socket descriptor => add to the list
+	if (sd>0) FD_SET(sd, &Peer.readfds);
+
+	//highest file descriptor number,
+	//need it for the select function
+	if (sd > Peer.max_sd) Peer.max_sd = sd;
+
     } else {
 	printf("[C] Can't establish new connection because it reached the maximum !\n");
     }
