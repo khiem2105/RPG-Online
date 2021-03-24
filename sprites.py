@@ -52,20 +52,24 @@ class Player(pg.sprite.Sprite):
         keys = pg.key.get_pressed()
         if keys[pg.K_LEFT] or keys[pg.K_a]:
             self.rot_speed = PLAYER_ROT_SPEED
-            return True
+            if not self.game.network.is_master :
+                self.game.network.run_peer()
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             self.rot_speed = -PLAYER_ROT_SPEED
-            return True
+            if not self.game.network.is_master :
+                self.game.network.run_peer()
         if keys[pg.K_UP] or keys[pg.K_w]:
             self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
-            return True
+            if not self.game.network.is_master :
+                self.game.network.run_peer()
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
-            return True
+            if not self.game.network.is_master :
+                self.game.network.run_peer()
         if keys[pg.K_SPACE]:
             self.shoot()
-            return True
-        return False
+            if not self.game.network.is_master :
+                self.game.network.run_peer()
 
     def shoot(self):
         now = pg.time.get_ticks()
@@ -88,9 +92,10 @@ class Player(pg.sprite.Sprite):
         self.damage_alpha = chain(DAMAGE_ALPHA * 4)
 
     def update(self):
-        if self.get_keys() and not self.game.network.is_master :
-            self.game.network.run_peer()
-        
+        # get data of others:
+        self.game.network.peer_get_data()
+
+        self.get_keys() 
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
         if self.damaged:
