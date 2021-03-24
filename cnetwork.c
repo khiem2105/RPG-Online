@@ -41,7 +41,9 @@ struct PeerSocket {
     int id;
     char* ip;
     int port;
+    char last_message[BUF_SIZE];
 };
+
 struct MasterPeer {
     struct sockaddr_in address;
     int master_socket;
@@ -78,34 +80,33 @@ void Cinit_master_peer(void) {
 //-------------------- PEER ----------------------
 // Data of Peer
 struct NormalPeer {
-int master_file_desc;
-struct sockaddr_in address;
-int master_socket;
-int opt;
-int port;
-int addrlen;
-int max_sd;
-char buffer[BUF_SIZE];
-int number_of_other_peers;
-// table of other peer's socket
-struct PeerSocket peer_socket[5];
-int max_peer;
-int myId;
-// variable which maintains the master loop 
-bool running_master_thread;
-
-fd_set readfds;
+    int master_file_desc;
+    struct sockaddr_in address;
+    int master_socket;
+    int opt;
+    int port;
+    int addrlen;
+    int max_sd;
+    char buffer[BUF_SIZE];
+    int number_of_other_peers;
+    // table of other peer's socket
+    struct PeerSocket peer_socket[5];
+    int max_peer;
+    int myId;
+    // variable which maintains the master loop 
+    bool running_master_thread;
+    fd_set readfds;
 };
 
 //Initialization
 struct NormalPeer Peer;
 void Cinit_normal_peer(void) {
-bzero(Peer.buffer, BUF_SIZE);
-Peer.opt = 1;
-Peer.running_master_thread = false;
-Peer.max_peer = 5;
-Peer.number_of_other_peers = 0;
-memset(Peer.peer_socket, 0, sizeof(Master.peer_socket));
+    bzero(Peer.buffer, BUF_SIZE);
+    Peer.opt = 1;
+    Peer.running_master_thread = false;
+    Peer.max_peer = 5;
+    Peer.number_of_other_peers = 0;
+    memset(Peer.peer_socket, 0, sizeof(Master.peer_socket));
 }
 //--------------------END PEER ----------------------
 
@@ -137,12 +138,46 @@ void Cmaster_send_message_to_all_others_peer(void) {
     }
 }
 //------ PEER : LOOP TO ALL PEER and send a message USING GLOBAL_BUF  -------------
+// Fix : not send to master yet
 void Cpeer_send_message_to_all_others_peer(void) {
     for (int i=0; i<Peer.max_peer; i++) {
 	if (Peer.peer_socket[i].fd != 0) {
 	    Csend_message(Peer.peer_socket[i].fd, global_buf);
 	}
     }
+}
+//------ FOR PYTHON : PEERs LOOP TO ALL PEER and send a message by arguments  -------------
+void Cpeer_send_all(char* message) {
+    // send to master :
+    Csend_message(Peer.master_file_desc, message);
+    // send to all peers
+    for (int i=0; i<Peer.max_peer; i++) {
+	if (Peer.peer_socket[i].fd != 0) {
+	    Csend_message(Peer.peer_socket[i].fd, message);
+	}
+    }
+}
+
+static PyObject* peer_send_all(PyObject* self, PyObject* args) {
+    char * message;
+    if (!PyArg_ParseTuple(args, "s", &message)) return NULL;
+    Cpeer_send_all(message);
+    return Py_BuildValue("s", "Success");
+}
+//------ FOR PYTHON : MASTER LOOP TO ALL PEERs and send a message by arguments  -------------
+void Cmaster_send_all(char* message) {
+    for (int i=0; i<Master.max_peer; i++) {
+	if (Master.peer_socket[i].fd != 0) {
+	    Csend_message(Master.peer_socket[i].fd, message);
+	}
+    }
+}
+
+static PyObject* master_send_all(PyObject* self, PyObject* args) {
+    char * message;
+    if (!PyArg_ParseTuple(args, "s", &message)) return NULL;
+    Cmaster_send_all(message);
+    return Py_BuildValue("s", "Success");
 }
 // -------------------------------------------------------------------------
 // -------------------------------------------------------------------------
@@ -335,7 +370,8 @@ void Cincomming_message(void) {
 	    // Print the messgage received
 	    else {
 		Master.buffer[val_read] = '\0';
-		printf("[C] Message received : %s", Master.buffer);
+		strcpy(Master.peer_socket[i].last_message , Master.buffer);
+		printf("[C] Message received from %i : %s --- Saved!\n", i, Master.peer_socket[i].last_message);
 	    }
 	}
     }
@@ -562,7 +598,8 @@ void Cpeer_incomming_message(void) {
 		    printf("[C] Connected to player %i\n", int_c);
 		    Peer.peer_socket[i].id = int_c;
 		} else {
-		    printf("[C] Message received : %s", Peer.buffer);
+		    strcpy(Peer.peer_socket[i].last_message , Peer.buffer);
+		    printf("[C] Message received from %i : %s --- Saved!\n", Peer.peer_socket[i].id, Peer.peer_socket[i].last_message);
 		}
 	    }
 	}
@@ -648,10 +685,43 @@ static PyObject* set_my_id(PyObject* self, PyObject* args) {
 // ---------------------------------------------------------
 
 
+// ----------------------------------------------------------------
+// --------------- Peer get message saved from player ------------------
+char* Cpeer_get_message_from_player(int index) {
+    // Master isn't in the peer_socket
+    // so => index == -1 to get the last_message of Master
+    return Peer.peer_socket[index].last_message;
+}
+
+static PyObject* peer_get_message_from_player(PyObject* self, PyObject* args) {
+    int index ;
+    if (!PyArg_ParseTuple(args, "i", &index)) return NULL;
+    return Py_BuildValue("s", Cpeer_get_message_from_player(index));
+}
+// --------------- MASTER get message saved from player ------------------
+char* Cmaster_get_message_from_player(int index) {
+    // Master isn't in the peer_socket
+    // so => index == -1 to get the last_message of Master
+    return Master.peer_socket[index].last_message;
+}
+
+static PyObject* master_get_message_from_player(PyObject* self, PyObject* args) {
+    int index ;
+    if (!PyArg_ParseTuple(args, "i", &index)) return NULL;
+    return Py_BuildValue("s", Cmaster_get_message_from_player(index));
+}
+// ---------------------------------------------------------
+// ---------------------------------------------------------
+
+
 // ------------------ Build Module --------------------------
 // ----------------------------------------------------------
 // If a method hasn't arguments => you must add (PyCFunction)
 static PyMethodDef networkMethods[] = { // (PyCFunction)
+    {"master_send_all", master_send_all, METH_VARARGS, "MASTER send message to all Peers"},
+    {"peer_send_all", peer_send_all, METH_VARARGS, "Peer send message to Master + all Peers"},
+    {"master_get_message_from_player", peer_get_message_from_player, METH_VARARGS, "Master get message from player with id"},
+    {"peer_get_message_from_player", master_get_message_from_player, METH_VARARGS, "Peer get message from player with id; -1 for master"},
     {"set_my_id", set_my_id, METH_VARARGS, "Set id received from master"},
     {"peer_connect_to_peer", peer_connect_to_peer, METH_VARARGS, "Create a connection to an other peer by an addresse and a port specify"},
     {"normal_peer_start_loop", (PyCFunction)normal_peer_start_loop, METH_NOARGS, "Start normal peer loop, to wait for connections"},

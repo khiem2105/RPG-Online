@@ -2,6 +2,26 @@ import Cnetwork
 import time
 import _thread
 
+# Send to all others peer:
+# 1. Master : master_send_all(message)
+# 2. Peer   : peer_send_all(message)
+
+# Receive to all others peer:
+# 1. Master : master_get_message_from_player(index)
+# 2. Peer   : peer_get_message_from_player(index) (Cnetwork.peer_receive_from_master()   for master)
+
+def master():
+	time.sleep(5)
+	s = "THIS IS MASTER!"
+	Cnetwork.master_send_all(s)
+	print("sent")
+
+def peer():
+	time.sleep(5)
+	s = "THIS IS PEER!"
+	Cnetwork.peer_send_all(s)
+	print("sent")
+
 class Network:
 	def __init__(self):
 		print("[Python] Thread Python is running!")
@@ -17,7 +37,11 @@ class Network:
 		Cnetwork.master_peer_start_loop()
 		# ip_public = Cnetwork.get_ip_public()
 		# print("[Python] Python: ip external : " , ip_public)
+		#  _thread.start_new_thread(master, ())
 		print("[Python] Python sleep 360s ...")
+		while True:	
+			print(Cnetwork.master_get_message_from_player(0) )
+			time.sleep(0.5)
 		time.sleep(360)
 		Cnetwork.master_peer_end_loop()
 		print("[Python] Python wake up, and shutdown C master loop!")
@@ -25,10 +49,13 @@ class Network:
 	def init_peer(self):
 		ip = "127.0.0.1"
 		port = 2510
+		num_other_players = 0
 		Cnetwork.peer_connect_to_master(port, ip)
 		#Cnetwork.data_peer_start_loop()
 		#Cnetwork.data_peer_end_loop()
 		first_rev = True
+		test = True
+		#  _thread.start_new_thread(peer, ())
 		while True:
 			#  Message welcome : 
 			#  If first : "First;myId,myPort;"
@@ -56,6 +83,9 @@ class Network:
 								newId = int(newId)  
 								newPort = int(newPort) + 1 
 								Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
+						# Send first message :
+						Cnetwork.peer_send_all("THIS IS PEER!")
+
 					elif welcome[0] == "Disconnected":
 						print("[Python] Player " + welcome[1] + " was disconnected!")
 					else:
@@ -65,7 +95,9 @@ class Network:
 								print("[Python] New connection: ", newId, newIp, newPort)
 			except Exception as E:
 				print(str(E))
-			time.sleep(0.5)
+			#  print(Cnetwork.peer_get_message_from_player(1) )
+			Cnetwork.peer_send_all("THIS IS PEER")
+			time.sleep(2)
 
 if __name__ == "__main__":
 	# # Use Extension C to connect to server
