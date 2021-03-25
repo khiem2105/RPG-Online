@@ -95,10 +95,10 @@ class Player(pg.sprite.Sprite):
             for i in range(WEAPONS[self.weapon]['bullet_count']):
                 spread = uniform(-WEAPONS[self.weapon]['spread'], WEAPONS[self.weapon]['spread'])
                 Bullet(self.game, pos, dir.rotate(spread), WEAPONS[self.weapon]['damage'])
-                snd = choice(self.game.weapon_sounds[self.weapon])
-                if snd.get_num_channels() > 2:
-                    snd.stop()
-                snd.play()
+                # snd = choice(self.game.weapon_sounds[self.weapon])
+                # if snd.get_num_channels() > 2:
+                #     snd.stop()
+                # snd.play()
             MuzzleFlash(self.game, pos)
 
     def hit(self):
@@ -275,7 +275,8 @@ class Mob(pg.sprite.Sprite):
         target_dist = self.target.pos - self.pos
         if target_dist.length_squared() < DETECT_RADIUS**2:
             if random() < 0.002:
-                choice(self.game.zombie_moan_sounds).play()
+                # choice(self.game.zombie_moan_sounds).play()
+                pass
             self.rot = target_dist.angle_to(vec(1, 0))
             self.image = pg.transform.rotate(self.game.mob_img, self.rot)
             self.rect.center = self.pos
@@ -291,7 +292,7 @@ class Mob(pg.sprite.Sprite):
             collide_with_walls(self, self.game.walls, 'y')
             self.rect.center = self.hit_rect.center
         if self.health <= 0:
-            choice(self.game.zombie_hit_sounds).play()
+            # choice(self.game.zombie_hit_sounds).play()
             self.kill()
             self.game.map_img.blit(self.game.splat, self.pos - vec(32, 32))
 
