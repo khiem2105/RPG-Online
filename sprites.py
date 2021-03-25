@@ -54,22 +54,36 @@ class Player(pg.sprite.Sprite):
             self.rot_speed = PLAYER_ROT_SPEED
             if not self.game.network.is_master :
                 self.game.network.run_peer('L')
+            else:
+                self.game.network.run_master('L')
+
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             self.rot_speed = -PLAYER_ROT_SPEED
             if not self.game.network.is_master :
                 self.game.network.run_peer('R')
+            else:
+                self.game.network.run_master('R')
+
         if keys[pg.K_UP] or keys[pg.K_w]:
             self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
             if not self.game.network.is_master :
                 self.game.network.run_peer('U')
+            else:
+                self.game.network.run_master('U')
+
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
             if not self.game.network.is_master :
                 self.game.network.run_peer('D')
+            else:
+                self.game.network.run_master('D')
+
         if keys[pg.K_SPACE]:
             self.shoot()
             if not self.game.network.is_master :
                 self.game.network.run_peer('S')
+            else:
+                self.game.network.run_master('S')
 
     def shoot(self):
         now = pg.time.get_ticks()
@@ -95,6 +109,8 @@ class Player(pg.sprite.Sprite):
         # get data of others:
         if not self.game.network.is_master:
             self.game.network.peer_get_data()
+        else:
+            self.game.network.master_get_data()
 
         self.get_keys() 
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
@@ -173,6 +189,7 @@ class OtherPlayer(pg.sprite.Sprite):
     #     self.damage_alpha = chain(DAMAGE_ALPHA * 4)
 
     def updateKey(self, key):
+        print("Update key" + key)
         self.rot_speed=0
         self.vel = vec(0, 0)
         if key == 'L': 
@@ -185,10 +202,26 @@ class OtherPlayer(pg.sprite.Sprite):
             self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
         if key == 'S': 
             self.shoot()
+        self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
+        self.image = pg.transform.rotate(self.game.player_img, self.rot)
+        if self.damaged:
+            try:
+                self.image.fill((255, 255, 255, next(self.damage_alpha)), special_flags=pg.BLEND_RGBA_MULT)
+            except:
+                self.damaged = False
+        self.rect = self.image.get_rect()
+        self.rect.center = self.pos
+        self.pos += self.vel * self.game.dt
+        self.hit_rect.centerx = self.pos.x
+        collide_with_walls(self, self.game.walls, 'x')
+        self.hit_rect.centery = self.pos.y
+        collide_with_walls(self, self.game.walls, 'y')
+        self.rect.center = self.hit_rect.center
 
     def update(self):
         # self.get_keys()
-        self.rot_speed=0
+        self.rot_speed = 0
+        self.vel = vec(0, 0)
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
         if self.damaged:

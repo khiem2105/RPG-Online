@@ -186,6 +186,7 @@ void Cpeer_send_all(char* message) {
     for (int i=0; i<Peer.max_peer; i++) {
 	if (Peer.peer_socket[i].fd != 0) {
 	    Csend_message(Peer.peer_socket[i].fd, message);
+	    printf("Line-189 [C] sent to %d\n", i);
 	}
     }
 }
@@ -581,6 +582,14 @@ static PyObject* peer_connect_to_master(PyObject* self, PyObject* args) {
     printf("[C] Connecting to master port : %i, ip: %s ... " ,connect_port, connect_ip);
     Cinit_normal_peer();
     Peer.master_file_desc =  Cpeer_connect_to(connect_port, connect_ip);
+    // NOT WORK
+    // Set non-blocking mode
+    if (fcntl(Peer.master_file_desc, F_GETFL) & O_NONBLOCK) {
+	printf("Socket is non-blocking!\n");
+    }
+    if (fcntl(Peer.master_file_desc, F_SETFL, fcntl(Peer.master_file_desc, F_GETFL) | O_NONBLOCK) < 0) {
+	stop("Fcntl error in peer_connect_to_master : \n");
+    }
     return Py_BuildValue("s", "Success");
 }
 // ---------------------------------------------------------
@@ -719,31 +728,30 @@ static PyObject* set_my_id(PyObject* self, PyObject* args) {
 
 // ----------------------------------------------------------------
 // --------------- Peer get message saved from player ------------------
-char* Cpeer_get_message_from_player(int index) {
-    // Master isn't in the peer_socket
-    // so => index == -1 to get the last_message of Master
-    // char buffer2[BUF_SIZE]; strcpy(buffer2, Peer.peer_socket[index].last_message);
-    // bzero(Peer.peer_socket[index].last_message, BUF_SIZE);
-    // return buffer2;
-	return Peer.peer_socket[index].last_message;
-}
-
 static PyObject* peer_get_message_from_player(PyObject* self, PyObject* args) {
     int index ;
     if (!PyArg_ParseTuple(args, "i", &index)) return NULL;
-    return Py_BuildValue("s", Cpeer_get_message_from_player(index));
+    if (Peer.peer_socket[index].last_message[0] == '\0') return Py_BuildValue ( "" );
+    else {
+	char buffer2[BUF_SIZE]; 
+	strcpy(buffer2, Peer.peer_socket[index].last_message);
+	bzero(Peer.peer_socket[index].last_message, BUF_SIZE);
+	return Py_BuildValue("s", buffer2);
+    }
 }
 // --------------- MASTER get message saved from player ------------------
-char* Cmaster_get_message_from_player(int index) {
-    // Master isn't in the peer_socket
-    // so => index == -1 to get the last_message of Master
-    return Master.peer_socket[index].last_message;
-}
 
 static PyObject* master_get_message_from_player(PyObject* self, PyObject* args) {
     int index ;
     if (!PyArg_ParseTuple(args, "i", &index)) return NULL;
-    return Py_BuildValue("s", Cmaster_get_message_from_player(index));
+    if (Master.peer_socket[index].last_message[0] != '\0') {
+	char buffer2[BUF_SIZE]; 
+	strcpy(buffer2, Master.peer_socket[index].last_message);
+	bzero(Master.peer_socket[index].last_message, BUF_SIZE);
+	return Py_BuildValue("s",buffer2); 
+    } else {
+	return Py_BuildValue("");
+    }
 }
 // ---------------------------------------------------------
 // ---------------------------------------------------------

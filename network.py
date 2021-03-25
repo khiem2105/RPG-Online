@@ -42,10 +42,13 @@ class Network:
         #  print("[Python] Pythoon wake up, and shutdown C master loop!")
 
 
-    def run_master(self):
+    def run_master(self, key):
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
         # Receive data of peers
+        message = "Data;"+key+";"
+        Cnetwork.master_send_all(message)
+        print("Sent :" + message)
         pass
 	
     def init_peer(self):
@@ -69,28 +72,42 @@ class Network:
         #          # Information of master (pos, ...)
                 #  pass
         
-        print("Passe par la 2!") 
-
-        #  Get data from other peers
-
-    def peer_get_data(self):
+        print("Sent :" + message)
+        
+    #  MASTER Get data from other peers
+    def master_get_data(self):
         try:
-            data = Cnetwork.peer_get_message_from_player(0)
-            print(data)
+            data = Cnetwork.master_get_message_from_player(0)
             if data != None:
+                print(data)
                 data = data.split(';')
                 if data[0] == "Data":
                     #  x, y = data[1].split(',')
                     key = data[1]
-                    print(key)
                     self.game.other_player_list[0].updateKey(key)
-            data1 = Cnetwork.peer_get_message_from_player(1)
-            if data1 != None:
-                data1 = data1.split(';')
-                if data1[0] == "Data":
+        except Exception as E:
+            print(str(E))
+
+    #  PEER Get data from other peers
+    def peer_get_data(self):
+        if self.first_message :
+            return 
+        try:
+            data_master = Cnetwork.peer_receive_from_master()
+            if data_master != None:
+                print(data_master)
+                data_master = data_master.split(';')
+                if data_master[0] == "Data":
                     #  x, y = data[1].split(',')
-                    key = data1[1]
-                    print(key)
+                    key = data_master[1]
+                    self.game.other_player_list[0].updateKey(key)
+            data = Cnetwork.peer_get_message_from_player(0)
+            if data != None:
+                print(data)
+                data = data.split(';')
+                if data[0] == "Data":
+                    #  x, y = data[1].split(',')
+                    key = data[1]
                     self.game.other_player_list[0].updateKey(key)
         except Exception as E:
             print(str(E))

@@ -140,9 +140,7 @@ class Game:
             if not self.paused:
                 self.update()
             self.draw()
-            if self.network.is_master:
-                self.network.run_master()
-            else:
+            if not self.network.is_master:
                 if self.network.first_message:
                     self.network.receive_first_message()
                 # else:
