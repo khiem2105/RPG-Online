@@ -1,5 +1,13 @@
 import pygame as pg
+from os import path
 vec = pg.math.Vector2
+
+# fonts
+game_folder = path.dirname(__file__)
+fonts_folder= path.dirname(game_folder,"fonts") 
+ENCHANT_FONT = path.join(fonts_folder, "enchanted_land.otf")
+ALEGREYA = path.join(fonts_folder, "alegreya.ttf")
+ALEGREYA_ITALIC = path.join(fonts_folder, "alegreya_italic.ttf")
 
 # define some colors (R, G, B)
 WHITE = (255, 255, 255)
@@ -11,6 +19,8 @@ RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 BROWN = (106, 55, 5)
 CYAN = (0, 255, 255)
+
+BLACK_HEX = '#000000'
 
 # game settings
 WIDTH = 800 #1024   # 16 * 64 or 32 * 32 or 64 * 16

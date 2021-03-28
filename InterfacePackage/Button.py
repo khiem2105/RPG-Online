@@ -1,5 +1,4 @@
 import pygame as pg
-from Settings import RESOLUTION_COEFF
 from .Text import Text
 
 
@@ -8,22 +7,22 @@ class Button(object):
     Notice that you need to handle what to do when the button is clicked oustide this class !"""
 
     def __init__(self, game, px, py, text, font, text_color, font_size, background=pg.image.load('graphics/menu/large_button.png'), \
-            background_hover=pg.image.load('graphics/menu/large_button_over.png')):
+            background_hover=pg.image.load('img/large_button_over.png')):
         self.game = game
         #resize the button
-        background = pg.transform.scale(background, (int(background.get_width()*RESOLUTION_COEFF), int(background.get_height()*RESOLUTION_COEFF))).convert_alpha()
-        background_hover = pg.transform.scale(background_hover, (int(background_hover.get_width()*RESOLUTION_COEFF), int(background_hover.get_height()*RESOLUTION_COEFF))).convert_alpha()
+        background = pg.transform.scale(background, (int(background.get_width() ), int(background.get_height() ))).convert_alpha()
+        background_hover = pg.transform.scale(background_hover, (int(background_hover.get_width() ), int(background_hover.get_height() ))).convert_alpha()
 
         #Text and fonts of our button
         self.text = text
         self.font = font 
         self.text_color = text_color 
-        self.font_size = int(font_size*RESOLUTION_COEFF)
+        self.font_size = int(font_size )
 
         #Background of the Button
         self.button_background = background.convert_alpha()
         self.x=px-self.button_background.get_width()//2 #Centering our coords
-        self.y=(py-self.button_background.get_height()//2)*RESOLUTION_COEFF 
+        self.y=(py-self.button_background.get_height()//2)  
         self.rect = self.button_background.get_rect(x=self.x, y=self.y)  # Create rectangle surface the same size as the button
         self.button_background_hover = background_hover.convert_alpha()
 

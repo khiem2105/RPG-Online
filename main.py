@@ -52,6 +52,9 @@ class Game:
         img_folder = path.join(game_folder, 'img')
         snd_folder = path.join(game_folder, 'snd')
         music_folder = path.join(game_folder, 'music')
+        fonts_folder = path.join(game_folder, 'fonts')
+        self.img_folder = img_folder
+        self.fonts_folder =fonts_folder
         self.map_folder = path.join(game_folder, 'maps')
         self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
         self.hud_font = path.join(img_folder, 'Impacted2.0.ttf')
