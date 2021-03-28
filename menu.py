@@ -4,7 +4,7 @@ from InterfacePackage import Text,TextEntry,Button
 from settings import *
 from os import path
 
-class Menu():
+class Menu:
     def __init__(self,game):
         self.game=game
         self.run_display = True 

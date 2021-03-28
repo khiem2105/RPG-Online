@@ -4,7 +4,7 @@ vec = pg.math.Vector2
 
 # fonts
 game_folder = path.dirname(__file__)
-fonts_folder= path.dirname(game_folder,"fonts") 
+fonts_folder= path.join(game_folder,"fonts") 
 ENCHANT_FONT = path.join(fonts_folder, "enchanted_land.otf")
 ALEGREYA = path.join(fonts_folder, "alegreya.ttf")
 ALEGREYA_ITALIC = path.join(fonts_folder, "alegreya_italic.ttf")
