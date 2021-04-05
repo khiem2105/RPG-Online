@@ -16,18 +16,13 @@ class Network:
         self.game = game
         self.number_peers = 0
         print("[Python] Thread Python is running!")
-        temp=input("[Python] Choose : 1 = master - 2 = peer\n")
         self.first_message = True
-        if ("1" == temp ):
-            self.is_master=True
-            self.init_master()
-        else:
-            self.is_master=False
-            self.init_peer()
-		
+
 	
     def init_master(self):
-        Cnetwork.create_and_bind(2510)
+        # Cnetwork.create_and_bind(2510)
+        print("[Python] your are the master peer! with port "+str(self.game.port))
+        Cnetwork.create_and_bind(self.game.port)
         Cnetwork.listen_and_accept()
         Cnetwork.master_peer_start_loop()
         # ip_public = Cnetwork.get_ip_public()
@@ -52,8 +47,10 @@ class Network:
         pass
 	
     def init_peer(self):
+        print("[Python] your are the normal peer! with port "+str(self.game.port))
         ip = "127.0.0.1"
-        port = 2510
+        port = self.game.port
+        # port = 2510
         self.num_other_players = 0
         Cnetwork.peer_connect_to_master(port, ip)
     

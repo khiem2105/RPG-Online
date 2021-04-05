@@ -10,8 +10,8 @@ class Button(object):
             background_hover=pg.image.load('img/large_button_over.png')):
         self.game = game
         #resize the button
-        background = pg.transform.scale(background, (int(background.get_width() ), int(background.get_height() ))).convert_alpha()
-        background_hover = pg.transform.scale(background_hover, (int(background_hover.get_width() ), int(background_hover.get_height() ))).convert_alpha()
+        background = pg.transform.scale(background, (int(background.get_width() )//2, int(background.get_height() )//2)).convert_alpha()
+        background_hover = pg.transform.scale(background_hover, (int(background_hover.get_width() )//2, int(background_hover.get_height() )//2)).convert_alpha()
 
         #Text and fonts of our button
         self.text = text

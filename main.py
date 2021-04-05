@@ -32,7 +32,11 @@ def draw_player_health(surf, x, y, pct):
 
 class Game:
     def __init__(self):
+        # port
+        self.port=2510
+        # network
         self.network = Network(self)
+        # -----
         pg.mixer.pre_init(44100, -16, 4, 2048)
         pg.init()
         self.screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -43,6 +47,7 @@ class Game:
         # init menu
         self.menu=Menu(self)
         self.menu_is_running=True
+        
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
