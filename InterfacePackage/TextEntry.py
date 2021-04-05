@@ -1,4 +1,4 @@
-from Settings import BROWN, WHITE
+from settings import BROWN, WHITE
 import pygame as pg
 
 class TextEntry(object):
@@ -55,9 +55,9 @@ class TextEntry(object):
     def display_box(self):
         """This function displays our TextEntry"""
         #Adding the text surface to our display
-        self.game.display.blit(self.text_surface, (self.rect.x+5, self.rect.y+5))
+        self.game.screen.blit(self.text_surface, (self.rect.x+5, self.rect.y+5))
         #Drawing the rectangle around our TextEntry
-        pg.draw.rect(self.game.display, self.color, self.rect, 2)
+        pg.draw.rect(self.game.screen, self.color, self.rect, 2)
 
     def get_text(self):
         """This function returns the text in our field"""

@@ -21,6 +21,7 @@ BROWN = (106, 55, 5)
 CYAN = (0, 255, 255)
 
 BLACK_HEX = '#000000'
+WHITE_HEX = '#FFFFFF'
 
 # game settings
 WIDTH = 800 #1024   # 16 * 64 or 32 * 32 or 64 * 16
