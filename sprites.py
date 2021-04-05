@@ -2,6 +2,7 @@ from os import truncate
 import pygame as pg
 from random import uniform, choice, randint, random
 from settings import *
+import numpy
 from tilemap import collide_hit_rect
 import pytweening as tween
 from itertools import chain
@@ -91,7 +92,7 @@ class Player(pg.sprite.Sprite):
             self.last_shot = now
             dir = vec(1, 0).rotate(-self.rot)
             pos = self.pos + BARREL_OFFSET.rotate(-self.rot)
-            self.vel = vec(-WEAPONS[self.weapon]['kickback'], 0).rotate(-self.rot)
+            #self.vel = vec(-WEAPONS[self.weapon]['kickback'], 0).rotate(-self.rot)
             for i in range(WEAPONS[self.weapon]['bullet_count']):
                 spread = uniform(-WEAPONS[self.weapon]['spread'], WEAPONS[self.weapon]['spread'])
                 Bullet(self.game, pos, dir.rotate(spread), WEAPONS[self.weapon]['damage'])
@@ -148,7 +149,7 @@ class OtherPlayer(pg.sprite.Sprite):
         self.vel = vec(0, 0)
         self.pos = vec(x, y)
         self.rot = 0
-        # self.last_shot = 0
+        self.last_shot = 0
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
         self.damaged = False
@@ -168,25 +169,25 @@ class OtherPlayer(pg.sprite.Sprite):
     #     if keys[pg.K_SPACE]:
     #         self.shoot()
 
-    # def shoot(self):
-    #     now = pg.time.get_ticks()
-    #     if now - self.last_shot > WEAPONS[self.weapon]['rate']:
-    #         self.last_shot = now
-    #         dir = vec(1, 0).rotate(-self.rot)
-    #         pos = self.pos + BARREL_OFFSET.rotate(-self.rot)
-    #         self.vel = vec(-WEAPONS[self.weapon]['kickback'], 0).rotate(-self.rot)
-    #         for i in range(WEAPONS[self.weapon]['bullet_count']):
-    #             spread = uniform(-WEAPONS[self.weapon]['spread'], WEAPONS[self.weapon]['spread'])
-    #             Bullet(self.game, pos, dir.rotate(spread), WEAPONS[self.weapon]['damage'])
-    #             snd = choice(self.game.weapon_sounds[self.weapon])
-    #             if snd.get_num_channels() > 2:
-    #                 snd.stop()
-    #             snd.play()
-    # #         MuzzleFlash(self.game, pos)
+    def shoot(self):
+        now = pg.time.get_ticks()
+        if now - self.last_shot > WEAPONS[self.weapon]['rate']:
+            self.last_shot = now
+            dir = vec(1, 0).rotate(-self.rot)
+            pos = self.pos + BARREL_OFFSET.rotate(-self.rot)
+            #self.vel = vec(-WEAPONS[self.weapon]['kickback'], 0).rotate(-self.rot)
+            for i in range(WEAPONS[self.weapon]['bullet_count']):
+                spread = uniform(-WEAPONS[self.weapon]['spread'], WEAPONS[self.weapon]['spread'])
+                Bullet(self.game, pos, dir.rotate(spread), WEAPONS[self.weapon]['damage'])
+                # snd = choice(self.game.weapon_sounds[self.weapon])
+                # if snd.get_num_channels() > 2:
+                #     snd.stop()
+                # snd.play()
+            MuzzleFlash(self.game, pos)
 
-    # def hit(self):
-    #     self.damaged = True
-    #     self.damage_alpha = chain(DAMAGE_ALPHA * 4)
+    def hit(self):
+        self.damaged = True
+        self.damage_alpha = chain(DAMAGE_ALPHA * 4)
 
     def updateKey(self, key):
         print("Update key" + key)
@@ -238,11 +239,11 @@ class OtherPlayer(pg.sprite.Sprite):
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
 
-    # def add_health(self, amount):
-    #     self.health += amount
-    #     if self.health > PLAYER_HEALTH:
-    #         self.health = PLAYER_HEALTH
-
+    def add_health(self, amount):
+        self.health += amount
+        if self.health > PLAYER_HEALTH:
+            self.health = PLAYER_HEALTH
+##################################################################################################################
 
 class Mob(pg.sprite.Sprite):
     def __init__(self, game, x, y):
@@ -262,7 +263,8 @@ class Mob(pg.sprite.Sprite):
         self.rot = 0
         self.health = MOB_HEALTH
         self.speed = choice(MOB_SPEEDS)
-        self.target = game.player
+        self.target_1 = game.player
+        self.target_2 = game.other_player_list[0]
 
     def avoid_mobs(self):
         for mob in self.game.mobs:
@@ -272,12 +274,18 @@ class Mob(pg.sprite.Sprite):
                     self.acc += dist.normalize()
 
     def update(self):
-        target_dist = self.target.pos - self.pos
-        if target_dist.length_squared() < DETECT_RADIUS**2:
+        target_dist_1 = (self.target_1.pos - self.pos)
+        target_dist_2 = (self.target_2.pos - self.pos)
+        a = target_dist.length_squared()
+        b = target_dist_2.length_squared()
+        if min(a,b) < DETECT_RADIUS**2:
             if random() < 0.002:
                 # choice(self.game.zombie_moan_sounds).play()
                 pass
-            self.rot = target_dist.angle_to(vec(1, 0))
+            if (a == min(a,b)):
+                self.rot = target_dist_1.angle_to(vec(1, 0))
+            else:
+                self.rot = target_dist_2.angle_to(vec(1, 0))
             self.image = pg.transform.rotate(self.game.mob_img, self.rot)
             self.rect.center = self.pos
             self.acc = vec(1, 0).rotate(-self.rot)
