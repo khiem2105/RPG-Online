@@ -6,7 +6,7 @@ class Button(object):
     """This class aims to create buttons that the user can click. 
     Notice that you need to handle what to do when the button is clicked oustide this class !"""
 
-    def __init__(self, game, px, py, text, font, text_color, font_size, background=pg.image.load('graphics/menu/large_button.png'), \
+    def __init__(self, game, px, py, text, font, text_color, font_size, background=pg.image.load('img/large_button.png'), \
             background_hover=pg.image.load('img/large_button_over.png')):
         self.game = game
         #resize the button
@@ -36,23 +36,23 @@ class Button(object):
     def display_button(self):
         """This functions displays the button"""
         #Adding the background to the canvas
-        self.game.display.blit(self.button_background, (self.x, self.y))
+        self.game.screen.blit(self.button_background, (self.x, self.y))
         #Adding the text surface to the canvas
-        self.game.display.blit(self.text_surface, self.rectText)
+        self.game.screen.blit(self.text_surface, self.rectText)
 
     def selected_display(self, new_color):
         "This fonction display another version of the button when selected (same as when color on mouse)"
-        self.game.display.blit(self.button_background_hover, (self.x,self.y)) #Changing the button color
+        self.game.screen.blit(self.button_background_hover, (self.x,self.y)) #Changing the button color
         self.hover_text_surface = self.font_obj.render(self.text, True, pg.Color(new_color))
-        self.game.display.blit(self.hover_text_surface, self.rectText)
+        self.game.screen.blit(self.hover_text_surface, self.rectText)
 
     def color_on_mouse(self, new_color) :
         'Changing button color when mouse is passing on it'
         #Testing if the button is pressed
         if self.rect.collidepoint(pg.mouse.get_pos()) :
-            self.game.display.blit(self.button_background_hover, (self.x,self.y)) #Changing the button color
+            self.game.screen.blit(self.button_background_hover, (self.x,self.y)) #Changing the button color
             self.hover_text_surface = self.font_obj.render(self.text, True, pg.Color(new_color))
-            self.game.display.blit(self.hover_text_surface, self.rectText)
+            self.game.screen.blit(self.hover_text_surface, self.rectText)
     
 
     def is_clicked(self, event):
