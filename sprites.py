@@ -102,6 +102,23 @@ class Player(pg.sprite.Sprite):
                 # snd.play()
             MuzzleFlash(self.game, pos)
 
+    def draw_player_health(surf, x, y, pct):
+        if pct < 0:
+            pct = 0
+        BAR_LENGTH = 100
+        BAR_HEIGHT = 20
+        fill = pct * BAR_LENGTH
+        outline_rect = pg.Rect(x, y, BAR_LENGTH, BAR_HEIGHT)
+        fill_rect = pg.Rect(x, y, fill, BAR_HEIGHT)
+        if pct > 0.6:
+            col = GREEN
+        elif pct > 0.3:
+            col = YELLOW
+        else:
+            col = RED
+        pg.draw.rect(surf, col, fill_rect)
+        pg.draw.rect(surf, WHITE, outline_rect, 2)
+
     def hit(self):
         self.damaged = True
         self.damage_alpha = chain(DAMAGE_ALPHA * 4)
@@ -276,7 +293,7 @@ class Mob(pg.sprite.Sprite):
     def update(self):
         target_dist_1 = (self.target_1.pos - self.pos)
         target_dist_2 = (self.target_2.pos - self.pos)
-        a = target_dist.length_squared()
+        a = target_dist_1.length_squared()
         b = target_dist_2.length_squared()
         if min(a,b) < DETECT_RADIUS**2:
             if random() < 0.002:
@@ -294,6 +311,7 @@ class Mob(pg.sprite.Sprite):
             self.acc += self.vel * -1
             self.vel += self.acc * self.game.dt
             self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
+
             self.hit_rect.centerx = self.pos.x
             collide_with_walls(self, self.game.walls, 'x')
             self.hit_rect.centery = self.pos.y

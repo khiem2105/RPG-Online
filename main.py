@@ -180,18 +180,32 @@ class Game:
                 # self.effects_sounds['gun_pickup'].play()
                 self.player.weapon = 'shotgun'
         # mobs hit player
-        hits = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
-        for hit in hits:
-            if random() < 0.7:
-                # choice(self.player_hit_sounds).play()
-                pass
-            self.player.health -= MOB_DAMAGE
-            hit.vel = vec(0, 0)
-            if self.player.health <= 0:
-                self.playing = False
-        if hits:
-            self.player.hit()
-            self.player.pos += vec(MOB_KNOCKBACK, 0).rotate(-hits[0].rot)
+        # hits_1 = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
+        # for hit in hits_1:
+        #     if random() < 0.7:
+        #         # choice(self.player_hit_sounds).play()
+        #         pass
+        #     self.player.health -= MOB_DAMAGE
+        #     hit.vel = vec(0, 0)
+        #     if self.player.health <= 0:
+        #         self.playing = False
+        # if hits_1:
+        #     self.player.hit()
+        #     self.player.pos += vec(MOB_KNOCKBACK, 0).rotate(-hits_1[0].rot)
+        # #other_player
+        # hits_2 = pg.sprite.spritecollide(self.other_player_list[0], self.mobs, False, collide_hit_rect)
+        # for hit in hits_2:
+        #     if random() < 0.7:
+        #         # # choice(self.player_hit_sounds).play()
+        #         pass
+        #     self.other_player_list[0].health -= MOB_DAMAGE
+        #     hit.vel = vec(0, 0)
+        #     if self.other_player_list[0].health <= 0:
+        #         self.playing = False
+        # if hits_2:
+        #     self.other_player_list[0].hit()
+        #     self.other_player_list[0].pos += vec(MOB_KNOCKBACK, 0).rotate(-hits_2[0].rot)
+
         # bullets hit mobs
         hits = pg.sprite.groupcollide(self.mobs, self.bullets, False, True)
         for mob in hits:
