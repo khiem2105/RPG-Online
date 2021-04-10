@@ -35,6 +35,7 @@ class Game:
         # port
         self.port=2510
         # network
+        self.other_player_list={}
         self.network = Network(self)
         # -----
         pg.mixer.pre_init(44100, -16, 4, 2048)
@@ -43,7 +44,6 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
-        self.other_player_list=[]
         # init menu
         self.menu=Menu(self)
         self.menu_is_running=True
@@ -126,8 +126,8 @@ class Game:
                              tile_object.y + tile_object.height / 2)
             if tile_object.name == 'player':
                 self.player = Player(self, obj_center.x, obj_center.y)
-                #add other_player test version
-                self.other_player_list.append( OtherPlayer(self,obj_center.x, obj_center.y) )
+                # #add other_player test version
+                # self.other_player_list.append(OtherPlayer(self, obj_center.x, obj_center.y))
             if tile_object.name == 'zombie':
                 Mob(self, obj_center.x, obj_center.y)
             if tile_object.name == 'wall':

@@ -2,7 +2,7 @@ from sys import setdlopenflags
 import Cnetwork
 import time
 import _thread
-
+from sprites import OtherPlayer
 # Send to all others peer:
 # 1. Master : master_send_all(message)
 # 2. Peer   : peer_send_all(message)
@@ -14,38 +14,64 @@ import _thread
 class Network:
     def __init__(self, game):
         self.game = game
-        self.number_peers = 0
+        self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 
+        # self.number_peers = 0
         print("[Python] Thread Python is running!")
         self.first_message = True
 
+    def add_new_player(self, new_id):
+        print("[Python] Welcome player id %i!" %(new_id))
+        new_player = OtherPlayer(self.game, 352, 224)
+        new_player.id = new_id
+        self.game.other_player_list[new_id] = new_player
+        print("[Python] Created new instance of OtherPlayer() ")
+        print("[Python] List of players : ", self.game.other_player_list)
 	
     def init_master(self):
-        # Cnetwork.create_and_bind(2510)
         print("[Python] your are the master peer! with port "+str(self.game.port))
         Cnetwork.create_and_bind(self.game.port)
         Cnetwork.listen_and_accept()
         Cnetwork.master_peer_start_loop()
-        # ip_public = Cnetwork.get_ip_public()
-        # print("[Python] Python: ip external : " , ip_public)
-        #  _thread.start_new_thread(master, ())
-       #   print("[Python] Python sleep 360s ...")
-        #  while True:
-        #      print(Cnetwork.master_get_message_from_player(0) )
-        #      time.sleep(0.5)
-        #  time.sleep(360)
-        #  Cnetwork.master_peer_end_loop()
-        #  print("[Python] Pythoon wake up, and shutdown C master loop!")
-
 
     def run_master(self, key):
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
-        # Receive data of peers
+        # Reieive data of peers
         message = "Data;"+key+";"
         Cnetwork.master_send_all(message)
-        print("Sent :" + message)
-        pass
+        # print("Sent :" + message)
 	
+    #  MASTER Get data from other peers
+    def master_get_data(self):
+        # Get data from master_buffer to know :
+        # 1. if someone connected to master
+        # 2. if someone disconnected
+        try:
+            data = Cnetwork.master_get_to_know_new_connection()
+            if data != None and data != "":
+                print("Master", data)
+                data = data.split(';')
+                if data[0] == "New":
+                    new_id = int(data[1])
+                    self.add_new_player(new_id)
+        except Exception as E:
+            print(str(E))
+
+        # Get data from other players => to update status
+        # To do : add a loop to get all peers
+        try:
+            for i in self.list_id():
+                data = Cnetwork.master_get_message_from_player(i)
+                if data != None:
+                    print("[Python]: ", data)
+                    data = data.split(';')
+                    if data[0] == "Data":
+                        #  x, y = data[1].split(',')
+                        key = data[1]
+                        self.game.other_player_list[i].updateKey(key)
+        except Exception as E:
+            print(str(E))
+
     def init_peer(self):
         print("[Python] your are the normal peer! with port "+str(self.game.port))
         ip = "127.0.0.1"
@@ -53,37 +79,13 @@ class Network:
         # port = 2510
         self.num_other_players = 0
         Cnetwork.peer_connect_to_master(port, ip)
+        self.add_new_player(-1)
     
     def run_peer(self,key):
         # send 
         message="Data;"+key+";"
         Cnetwork.peer_send_all(message)
-        # receive master
-        #  welcome = Cnetwork.peer_receive_from_master()
-        #  if welcome != None:
-        #      print("[Python] Data raw :", welcome)
-        #      welcome = welcome.split(";")
-        #      if welcome[0] == "Disconnected":
-        #          print("[Python] Player " + welcome[1] + " was disconnected!")
-        #      else:
-        #          # Information of master (pos, ...)
-                #  pass
         
-        print("Sent :" + message)
-        
-    #  MASTER Get data from other peers
-    def master_get_data(self):
-        try:
-            data = Cnetwork.master_get_message_from_player(0)
-            if data != None:
-                print(data)
-                data = data.split(';')
-                if data[0] == "Data":
-                    #  x, y = data[1].split(',')
-                    key = data[1]
-                    self.game.other_player_list[0].updateKey(key)
-        except Exception as E:
-            print(str(E))
 
     #  PEER Get data from other peers
     def peer_get_data(self):
@@ -91,25 +93,41 @@ class Network:
             return 
         try:
             data_master = Cnetwork.peer_receive_from_master()
-            if data_master != None:
-                print(data_master)
+            if data_master != None and data_master != "":
+                # print(data_master)
                 data_master = data_master.split(';')
                 if data_master[0] == "Data":
                     #  x, y = data[1].split(',')
                     key = data_master[1]
-                    self.game.other_player_list[0].updateKey(key)
-            data = Cnetwork.peer_get_message_from_player(0)
-            if data != None:
-                print(data)
-                data = data.split(';')
-                if data[0] == "Data":
-                    #  x, y = data[1].split(',')
-                    key = data[1]
-                    self.game.other_player_list[0].updateKey(key)
+                    self.game.other_player_list[-1].updateKey(key) # id master = -1
+            for i in self.list_id():
+                if i == -1: continue # != id master
+                data = Cnetwork.peer_get_message_from_player(i)
+                if data != None and data != "":
+                    data = data.split(';')
+                    if data[i] == "Data":
+                        #  x, y = data[1].split(',')
+                        key = data[1]
+                        print("[Python] received from player ",i, " :", key)
+                        self.game.other_player_list[i].updateKey(key)
         except Exception as E:
             print(str(E))
 
-                        
+        # Get data from peer_buffer to know :
+        # 1. if someone connected 
+        # 2. if someone disconnected
+        try:
+            data = Cnetwork.peer_get_to_know_new_connection()
+            if data != None and data != "":
+                data = data.split(';')
+                if data[0] == "New":
+                    new_id = int(data[1])
+                    self.add_new_player(new_id)
+                # if data[0] == "Disconnected":
+                    # player_id = int(data[1])
+        except Exception as E:
+            print(str(E))
+
            
     def receive_first_message(self):
         welcome = Cnetwork.peer_receive_from_master()
@@ -135,8 +153,7 @@ class Network:
                         newId = int(newId)  
                         newPort = int(newPort) + 1 
                         Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
-                        # each iteration = 1 peer
-                        self.number_peers += 1
+                        self.add_new_player(newId)
                     except:
                         pass
             self.first_message = False
@@ -172,6 +189,7 @@ class Network:
                                 newId = int(newId)  
                                 newPort = int(newPort) + 1 
                                 Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
+                                self.add_new_player(newId)
                         # Send first message :
                         Cnetwork.peer_send_all("THIS IS PEER!")
 
