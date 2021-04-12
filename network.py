@@ -18,11 +18,13 @@ class Network:
         # self.number_peers = 0
         print("[Python] Thread Python is running!")
         self.first_message = True
+        self.list_peer_connected_before_me = {} # {id : True/False}
 
-    def add_new_player(self, new_id):
+    def add_new_player(self, new_id, connected_before_me=False):
         print("[Python] Welcome player id %i!" %(new_id))
         new_player = OtherPlayer(self.game, 352, 224)
         new_player.id = new_id
+        self.list_peer_connected_before_me[new_id] = connected_before_me
         self.game.other_player_list[new_id] = new_player
         print("[Python] Created new instance of OtherPlayer() ")
         print("[Python] List of players : ", self.game.other_player_list)
@@ -39,7 +41,7 @@ class Network:
         # Reieive data of peers
         message = "Data;"+key+";"
         Cnetwork.master_send_all(message)
-        # print("Sent :" + message)
+        print("Master sent to all:" + message)
 	
     #  MASTER Get data from other peers
     def master_get_data(self):
@@ -49,7 +51,7 @@ class Network:
         try:
             data = Cnetwork.master_get_to_know_new_connection()
             if data != None and data != "":
-                print("Master", data)
+                print("Received new connection :", data)
                 data = data.split(';')
                 if data[0] == "New":
                     new_id = int(data[1])
@@ -63,7 +65,7 @@ class Network:
             for i in self.list_id():
                 data = Cnetwork.master_get_message_from_player(i)
                 if data != None:
-                    print("[Python]: ", data)
+                    print("[Python] Master received data from player ",i ," : ", data)
                     data = data.split(';')
                     if data[0] == "Data":
                         #  x, y = data[1].split(',')
@@ -79,37 +81,46 @@ class Network:
         # port = 2510
         self.num_other_players = 0
         Cnetwork.peer_connect_to_master(port, ip)
-        self.add_new_player(-1)
+        self.add_new_player(-1, True)
     
     def run_peer(self,key):
         # send 
         message="Data;"+key+";"
         Cnetwork.peer_send_all(message)
+        print("Peer sent to all : " , message)
         
+    def analyse_data_received(self, data, id_player):
+        if data != None and data != "":
+            data = data.split(';')
+            if (id_player == -1) :
+                print("data_master:", data)
+            if data[0] == "Data":
+                key = data[1]
+                print("[Python] received from player ", id_player, " :", key)
+                self.game.other_player_list[id_player].updateKey(key)
 
     #  PEER Get data from other peers
     def peer_get_data(self):
         if self.first_message :
             return 
         try:
+            # Receive data from master
             data_master = Cnetwork.peer_receive_from_master()
-            if data_master != None and data_master != "":
-                # print(data_master)
-                data_master = data_master.split(';')
-                if data_master[0] == "Data":
-                    #  x, y = data[1].split(',')
-                    key = data_master[1]
-                    self.game.other_player_list[-1].updateKey(key) # id master = -1
+            self.analyse_data_received(data_master, -1)
+
+            # Receive data from old peers 
             for i in self.list_id():
-                if i == -1: continue # != id master
+                if i == -1 or not self.list_peer_connected_before_me[i]: continue
+                data = Cnetwork.peer_receive_from_old_peer(i)
+                self.analyse_data_received(data, i)
+                if data != "" : print("Worked : ", data)
+
+            # Receive data from new peers 
+            for i in self.list_id():
+                if i == -1 or self.list_peer_connected_before_me[i]: continue # != id master
                 data = Cnetwork.peer_get_message_from_player(i)
-                if data != None and data != "":
-                    data = data.split(';')
-                    if data[i] == "Data":
-                        #  x, y = data[1].split(',')
-                        key = data[1]
-                        print("[Python] received from player ",i, " :", key)
-                        self.game.other_player_list[i].updateKey(key)
+                self.analyse_data_received(data, i)
+
         except Exception as E:
             print(str(E))
 
@@ -127,7 +138,6 @@ class Network:
                     # player_id = int(data[1])
         except Exception as E:
             print(str(E))
-
            
     def receive_first_message(self):
         welcome = Cnetwork.peer_receive_from_master()
@@ -153,7 +163,7 @@ class Network:
                         newId = int(newId)  
                         newPort = int(newPort) + 1 
                         Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
-                        self.add_new_player(newId)
+                        self.add_new_player(newId, True)
                     except:
                         pass
             self.first_message = False

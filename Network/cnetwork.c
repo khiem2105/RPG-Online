@@ -1,4 +1,4 @@
- #define PY_SSIZE_T_CLEAN
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 // Best tutorial to understand this file: https://www.youtube.com/watch?v=a65JdvOaygM&list=PL1A2CSdiySGIPxpSlgzsZiWDavYTAx61d&index=9
 // Docs: https://docs.python.org/3/extending/extending.html
@@ -57,7 +57,8 @@ struct MasterPeer {
     // table of peer's socket
     struct PeerSocket peer_socket[5];
     int max_peer;
-
+    // Keep track of number of player
+    int number_of_peers;
     // variable which maintains the master loop 
     bool running_master_thread;
 
@@ -72,6 +73,7 @@ struct MasterPeer {
 struct MasterPeer Master;
 void Cinit_master_peer(void) {
     Master.opt = 1;
+    Master.number_of_peers = 0;
     Master.running_master_thread = false;
     Master.max_peer = 5;
     memset(Master.peer_socket, 0, sizeof(Master.peer_socket));
@@ -93,6 +95,9 @@ struct NormalPeer {
     int number_of_other_peers;
     // table of other peer's socket
     struct PeerSocket peer_socket[5];
+    // table of other peer's who connected before THIS PEER
+    struct PeerSocket old_peer_socket[5];
+    int number_of_old_peers;
     int max_peer;
     int myId;
     // variable which maintains the master loop 
@@ -108,7 +113,9 @@ void Cinit_normal_peer(void) {
     Peer.running_master_thread = false;
     Peer.max_peer = 5;
     Peer.number_of_other_peers = 0;
-    memset(Peer.peer_socket, 0, sizeof(Master.peer_socket));
+    Peer.number_of_old_peers = 0;
+    memset(Peer.peer_socket, 0, sizeof(Peer.peer_socket));
+    memset(Peer.old_peer_socket, 0, sizeof(Peer.old_peer_socket));
 }
 //--------------------END PEER ----------------------
 
@@ -136,6 +143,7 @@ void Cmaster_send_message_to_all_others_peer(void) {
     for (int i=0; i<Master.max_peer; i++) {
 		if (Master.peer_socket[i].fd != 0) {
 			Csend_message(Master.peer_socket[i].fd, global_buf);
+			printf("[C] sent to %i\n", i);
 		}
     }
 }
@@ -188,7 +196,6 @@ void Cpeer_send_all(char* message) {
     for (int i=0; i<Peer.max_peer; i++) {
 	if (Peer.peer_socket[i].fd != 0) {
 	    Csend_message(Peer.peer_socket[i].fd, message);
-	    printf("[C] sent to %d\n", i);
 	}
     }
 }
@@ -204,6 +211,7 @@ void Cmaster_send_all(char* message) {
     for (int i=0; i<Master.max_peer; i++) {
 	if (Master.peer_socket[i].fd != 0) {
 	    Csend_message(Master.peer_socket[i].fd, message);
+	    printf("[C] sent to %i\n", i);
 	}
     }
 }
@@ -342,6 +350,7 @@ void Cincomming_connection(void) {
 	int new_connection_port = ntohs(Master.address.sin_port);
 	printf("[C] New connection , socket fd is %d , ip is : %s , port : %d \n" , new_socket , new_connection_ip, new_connection_port);
 
+	Master.number_of_peers += 1;
 	// add new socket to the table peer socket
 	int new_id=-1;
 	for (int i=0; i< Master.max_peer; i++) {
@@ -503,6 +512,30 @@ static PyObject* master_peer_end_loop(PyObject* self) {
 
 // --------------------------------------------------------
 // ------------------ Peer receive from master -----------------
+char* Cpeer_receive_from_old_peer(int id) {
+    bzero(Peer.buffer, 1024);
+    for (int i=0; i < Peer.number_of_old_peers; i++) {
+	if (Peer.old_peer_socket[i].id == id) {
+	    if (recv(Peer.old_peer_socket[i].fd, Peer.buffer, 1023, 0) < 0) {
+		if (errno != EAGAIN) perror("[C] Peer_receive_from_master failed! ");
+	    }
+	    break;
+	}
+    }
+    return Peer.buffer;
+}
+
+static PyObject* peer_receive_from_old_peer(PyObject* self, PyObject* args) {
+    int id;
+    if (!PyArg_ParseTuple(args, "i", &id)) return NULL;
+    return Py_BuildValue("s", Cpeer_receive_from_old_peer(id));
+}
+// ---------------------------------------------------------
+// ---------------------------------------------------------
+
+
+// --------------------------------------------------------
+// ------------------ Peer receive from master -----------------
 char* Cpeer_receive_from_master(void) {
     bzero(Peer.buffer, 1024);
     if (recv(Peer.master_file_desc, Peer.buffer, 1023, 0) < 0) {
@@ -553,25 +586,32 @@ static PyObject* peer_connect_to_peer(PyObject* self, PyObject* args) {
     printf("[C] Connecting to the peer whose port : %i and ip: %s ... " ,connect_port, connect_ip);
     // Add file descriptor of new peer to a table
     if (Peer.number_of_other_peers < MAX_CONNECTION) {
-	int p = Peer.number_of_other_peers; Peer.number_of_other_peers++;
-	Peer.peer_socket[p].fd =  Cpeer_connect_to(connect_port, connect_ip);
-	Peer.peer_socket[p].ip = connect_ip;
-	Peer.peer_socket[p].port = connect_port;
-	Peer.peer_socket[p].id = connect_id;
-	printf("[C] Connected to player %i\n", connect_id);
+	int p = Peer.number_of_old_peers; 
+	Peer.number_of_old_peers++;
+	Peer.old_peer_socket[p].fd =  Cpeer_connect_to(connect_port, connect_ip);
+	Peer.old_peer_socket[p].ip = connect_ip;
+	Peer.old_peer_socket[p].port = connect_port;
+	Peer.old_peer_socket[p].id = connect_id;
+	printf("[C] Connected to player %i! Added to old_peer_socket\n", connect_id);
 	// Send id to the peer connected
 	// First message + id : F%i
 	sprintf(global_buf, "F%i", Peer.myId);
-	Csend_message(Peer.peer_socket[p].fd , global_buf);
-	int sd = Peer.peer_socket[p].fd;
+	Csend_message(Peer.old_peer_socket[p].fd , global_buf);
+	/*int sd = Peer.old_peer_socket[p].fd;*/
 	// if sd==0 : haven't  connection
 	// else : it's a valid socket descriptor => add to the list
-	if (sd>0) FD_SET(sd, &Peer.readfds);
+	/*if (sd>0) FD_SET(sd, &Peer.readfds);*/
 
 	//highest file descriptor number,
 	//need it for the select function
-	if (sd > Peer.max_sd) Peer.max_sd = sd;
+	/*if (sd > Peer.max_sd) Peer.max_sd = sd;*/
 
+	// Set non-blocking mode
+	if (fcntl(Peer.old_peer_socket[p].fd, F_GETFL) & O_NONBLOCK) 
+	    printf("Socket is non-blocking!\n");
+	if (fcntl(Peer.old_peer_socket[p].fd, F_SETFL, fcntl(Peer.old_peer_socket[p].fd, F_GETFL) | O_NONBLOCK) < 0)
+	    stop("Fcntl error in peer_connect_to_peer : \n");
+	
     } else {
 	printf("[C] Can't establish new connection because it reached the maximum !\n");
     }
@@ -617,7 +657,7 @@ void Cpeer_incomming_connection(void) {
 		Peer.peer_socket[i].id = -1;//  Set id later 
 		Peer.peer_socket[i].ip = new_connection_ip;
 		Peer.peer_socket[i].port = new_connection_port;
-
+		printf("Add to Peer.peer_socket [i] with i = %d\n", i);
 		break;
 	    } 
 	}
@@ -737,15 +777,21 @@ static PyObject* set_my_id(PyObject* self, PyObject* args) {
 // ----------------------------------------------------------------
 // --------------- Peer get message saved from player ------------------
 static PyObject* peer_get_message_from_player(PyObject* self, PyObject* args) {
-    int index ;
-    if (!PyArg_ParseTuple(args, "i", &index)) return NULL;
-    if (Peer.peer_socket[index].last_message[0] == '\0') return Py_BuildValue ( "" );
-    else {
-	char buffer2[BUF_SIZE]; 
-	strcpy(buffer2, Peer.peer_socket[index].last_message);
-	bzero(Peer.peer_socket[index].last_message, BUF_SIZE);
-	return Py_BuildValue("s", buffer2);
+    int id ;
+    if (!PyArg_ParseTuple(args, "i", &id)) return NULL;
+    for (int i=0; i<Peer.number_of_other_peers; i++) {
+	if (id == Peer.peer_socket[i].id) {
+	    if (Peer.peer_socket[i].last_message[0] == '\0') return Py_BuildValue ( "" );
+	    else {
+		char buffer2[BUF_SIZE]; 
+		strcpy(buffer2, Peer.peer_socket[i].last_message);
+		bzero(Peer.peer_socket[i].last_message, BUF_SIZE);
+		return Py_BuildValue("s", buffer2);
+	    }
+	    break;
+	}
     }
+    return Py_BuildValue ( "" );
 }
 // --------------- MASTER get to know new connection --- ------------------
 static PyObject* master_get_to_know_new_connection(PyObject* self) {
@@ -770,18 +816,33 @@ static PyObject* peer_get_to_know_new_connection(PyObject* self) {
     }
 }
 // --------------- MASTER get message saved from player ------------------
-
 static PyObject* master_get_message_from_player(PyObject* self, PyObject* args) {
-    int index ;
-    if (!PyArg_ParseTuple(args, "i", &index)) return NULL;
-    if (Master.peer_socket[index].last_message[0] != '\0') {
-	char buffer2[BUF_SIZE]; 
-	strcpy(buffer2, Master.peer_socket[index].last_message);
-	bzero(Master.peer_socket[index].last_message, BUF_SIZE);
-	return Py_BuildValue("s",buffer2); 
-    } else {
-	return Py_BuildValue("");
+    int id ;
+    if (!PyArg_ParseTuple(args, "i", &id)) return NULL;
+    // This check is not nesscessary but I do it anyway beause of semantic
+    for (int i=0; i < Master.number_of_peers; i++)  {
+	if (id == Master.peer_socket[i].id) {
+	    if (Master.peer_socket[i].last_message[0] != '\0') {
+		char buffer2[BUF_SIZE]; 
+		strcpy(buffer2, Master.peer_socket[i].last_message);
+		bzero(Master.peer_socket[i].last_message, BUF_SIZE);
+		return Py_BuildValue("s",buffer2); 
+	    }
+	    break;
+	} 
     }
+    return Py_BuildValue("");
+}
+// ---------------------------------------------------------
+// ---------------------------------------------------------
+
+
+// -------------------------------------------------------
+// -------------------- Close Socket -------------------------
+static PyObject* close_socket(PyObject* self) {
+    if (Master.master_socket) close(Master.master_socket);
+    if (Peer.master_socket) close(Peer.master_socket);
+    return Py_BuildValue("s", "Success");
 }
 // ---------------------------------------------------------
 // ---------------------------------------------------------
@@ -791,6 +852,7 @@ static PyObject* master_get_message_from_player(PyObject* self, PyObject* args) 
 // ----------------------------------------------------------
 // If a method hasn't arguments => you must add (PyCFunction)
 static PyMethodDef networkMethods[] = { // (PyCFunction)
+    {"peer_receive_from_old_peer", peer_receive_from_old_peer, METH_VARARGS, "Peer receive data from old peer by using recv() non-blocking"},
     {"peer_get_to_know_new_connection", (PyCFunction)peer_get_to_know_new_connection, METH_NOARGS, "Peer get to know new connection by using data saved in peer_buffer"},
     {"master_get_to_know_new_connection", (PyCFunction)master_get_to_know_new_connection, METH_NOARGS, "Master get to know new connection by using data saved in master_buffer"},
     {"master_send_all", master_send_all, METH_VARARGS, "MASTER send message to all Peers"},
@@ -808,6 +870,7 @@ static PyMethodDef networkMethods[] = { // (PyCFunction)
     {"listen_and_accept", (PyCFunction)listen_and_accept, METH_NOARGS, "Create and bind socket master"},
     {"create_and_bind", create_and_bind, METH_VARARGS, "Create and bind socket master"},
     {"get_ip_public", (PyCFunction)get_ip_public, METH_NOARGS, "Get IP public of this machine"},
+    {"close_socket", (PyCFunction)close_socket, METH_NOARGS, "Closing all socket"},
 	{"master_send_message_to_all_other_peer", master_send_message_to_all_other_peer, METH_VARARGS, "Send a message from master peer to all others peer"},
 	{"peer_send_message_to_all_other_peer", peer_send_message_to_all_other_peer, METH_VARARGS, "Send a message from a peer to all anothers peer"},
     {NULL, NULL, 0, NULL} // terminator

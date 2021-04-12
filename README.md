@@ -10,6 +10,12 @@ sudo apt-get upgrade
 
 sudo apt-get install python3.8-dev
 
+sudo pip3 install pygame
+
+sudo pip3 install pytmx
+
+sudo pip3 install pytweening
+
 sudo apt install dnsutils
 
 ## Install and run

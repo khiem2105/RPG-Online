@@ -298,9 +298,13 @@ class Game:
 # create the game object
 g = Game()
 g.show_start_screen()
-while True:
-    g.new()
-    while g.menu_is_running:
-        g.menu.display_menu()
-    g.run()
-    g.show_go_screen()
+try:
+    while True:
+        g.new()
+        while g.menu_is_running:
+            g.menu.display_menu()
+        g.run()
+        g.show_go_screen()
+except:
+    Cnetwork.close_socket()
+    print("Closed!")
