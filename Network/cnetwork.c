@@ -192,10 +192,18 @@ static PyObject* peer_send_message_to_all_other_peer(PyObject* self, PyObject* a
 void Cpeer_send_all(char* message) {
     // send to master :
     Csend_message(Peer.master_file_desc, message);
-    // send to all peers
+    // send to new peers
     for (int i=0; i<Peer.max_peer; i++) {
 	if (Peer.peer_socket[i].fd != 0) {
 	    Csend_message(Peer.peer_socket[i].fd, message);
+	    printf("[C] Sent to player %d : %s\n", Peer.peer_socket[i].id, message );
+	}
+    }
+    // send to old peers
+    for (int i=0; i<Peer.max_peer; i++) {
+	if (Peer.old_peer_socket[i].fd != 0) {
+	    Csend_message(Peer.old_peer_socket[i].fd, message);
+	    printf("[C] Sent to player %d : %s\n", Peer.old_peer_socket[i].id, message );
 	}
     }
 }
@@ -688,7 +696,7 @@ void Cpeer_incomming_message(void) {
 		    sprintf(peer_buffer, "New;%i;", int_c);
 		} else {
 		    strcpy(Peer.peer_socket[i].last_message , Peer.buffer);
-		    printf("[C] Message received from %i : %s --- Saved!\n", Peer.peer_socket[i].id, Peer.peer_socket[i].last_message);
+		    printf("[C] Message received from index i = %i, id %i : %s --- Saved!\n",i,  Peer.peer_socket[i].id, Peer.peer_socket[i].last_message);
 		}
 	    }
 	}
@@ -779,19 +787,20 @@ static PyObject* set_my_id(PyObject* self, PyObject* args) {
 static PyObject* peer_get_message_from_player(PyObject* self, PyObject* args) {
     int id ;
     if (!PyArg_ParseTuple(args, "i", &id)) return NULL;
-    for (int i=0; i<Peer.number_of_other_peers; i++) {
-	if (id == Peer.peer_socket[i].id) {
+    for (int i=0; i<Peer.max_peer; i++) {
+	if (Peer.peer_socket[i].fd != 0 && id == Peer.peer_socket[i].id) {
+	    /*printf("[C] Tentative get data : i=%i, id=%i\n", i, Peer.peer_socket[i].id);*/
 	    if (Peer.peer_socket[i].last_message[0] == '\0') return Py_BuildValue ( "" );
 	    else {
 		char buffer2[BUF_SIZE]; 
 		strcpy(buffer2, Peer.peer_socket[i].last_message);
+		/*printf("[C] Tentative get data :%s <- %s", buffer2, Peer.peer_socket[i].last_message);*/
 		bzero(Peer.peer_socket[i].last_message, BUF_SIZE);
 		return Py_BuildValue("s", buffer2);
 	    }
-	    break;
 	}
     }
-    return Py_BuildValue ( "" );
+    return Py_BuildValue ("");
 }
 // --------------- MASTER get to know new connection --- ------------------
 static PyObject* master_get_to_know_new_connection(PyObject* self) {
