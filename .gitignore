@@ -1,8 +1,5 @@
 build/
-<<<<<<< HEAD
 *.swp
 *.un~
-
-=======
+*.pyc
 *un~*
->>>>>>> 3d6b036f36357ec9b526bba90846147d68ede64a

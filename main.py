@@ -34,6 +34,8 @@ class Game:
     def __init__(self):
         # port
         self.port=2510
+        # init player name
+        self.player_name="Player"
         # network
         self.other_player_list={}
         self.network = Network(self)
@@ -47,6 +49,7 @@ class Game:
         # init menu
         self.menu=Menu(self)
         self.menu_is_running=True
+        
         
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
