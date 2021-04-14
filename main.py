@@ -34,8 +34,6 @@ class Game:
     def __init__(self):
         # port
         self.port=2510
-        # init player name
-        self.player_name="Player"
         # network
         self.other_player_list={}
         self.network = Network(self)
@@ -46,9 +44,7 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
-        # init menu
-        self.menu=Menu(self)
-        self.menu_is_running=True
+        
         
         
 
@@ -129,7 +125,7 @@ class Game:
                              tile_object.y + tile_object.height / 2)
             if tile_object.name == 'player':
                 self.player = Player(self, obj_center.x, obj_center.y)
-                # #add other_player test version
+                # # add other_player test version
                 # self.other_player_list.append(OtherPlayer(self, obj_center.x, obj_center.y))
             if tile_object.name == 'zombie':
                 Mob(self, obj_center.x, obj_center.y)
@@ -142,6 +138,9 @@ class Game:
         self.draw_debug = False
         self.paused = False
         self.night = False
+        # init menu
+        self.menu=Menu(self)
+        self.menu_is_running=True
         # self.effects_sounds['level_start'].play()
 
     def run(self):
@@ -154,6 +153,7 @@ class Game:
             if not self.paused:
                 self.update()
             self.draw()
+            print(f"player name {self.player.player_name} other player {self.other_player_list}")
             if not self.network.is_master:
                 if self.network.first_message:
                     self.network.receive_first_message()

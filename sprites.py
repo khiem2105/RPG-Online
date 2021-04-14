@@ -278,7 +278,6 @@ class OtherPlayer(pg.sprite.Sprite):
         self.health += amount
         if self.health > PLAYER_HEALTH:
             self.health = PLAYER_HEALTH
-##################################################################################################################
 
 class Mob(pg.sprite.Sprite):
     def __init__(self, game, x, y):
