@@ -46,13 +46,13 @@ class Player(pg.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
         self.damaged = False
-        self.name = self.game.network.name
+        self.player_name = self.game.network.player_name
 
     def draw_name(self):
         # draw name 
         font = pg.font.SysFont(None, 20)
-        name = font.render(self.game.network.name, True, RED)
-        self.image.blit(name, (10, 0) )
+        player_name = font.render(self.game.network.player_name, True, RED)
+        self.image.blit(player_name, (10, 0) )
         # self.game.screen.blit(name, self.game.camera.apply(name))
 
         # img = font.render(sysfont, True, RED)
@@ -165,7 +165,7 @@ class Player(pg.sprite.Sprite):
             self.health = PLAYER_HEALTH
 
 class OtherPlayer(pg.sprite.Sprite):
-    def __init__(self, game, x, y, name):
+    def __init__(self, game, x, y, player_name):
         self._layer = PLAYER_LAYER
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -182,12 +182,12 @@ class OtherPlayer(pg.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
         self.damaged = False
-        self.name = name
+        self.player_name = player_name
 
     def draw_name(self):
         # draw name 
         font = pg.font.SysFont(None, 20)
-        name = font.render(self.name, True, WHITE)
+        player_name = font.render(self.player_name, True, WHITE)
         # self.image.blit(name, (10, 0) )
     # def get_keys(self):
     #     self.rot_speed = 0

@@ -15,7 +15,7 @@ class Network:
     def __init__(self, game):
         self.DEBUG = False
         self.game = game
-        self.name = input("Your name :")
+        self.player_name = input("Your name :")
         self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 
         # self.number_peers = 0
         print("[Python] Thread Python is running!")
@@ -24,7 +24,7 @@ class Network:
 
     def add_new_player(self, new_id, connected_before_me=False):
         print("[Python] Welcome player id %i!" %(new_id))
-        new_player = OtherPlayer(self.game, 352, 224, name=str(new_id))
+        new_player = OtherPlayer(self.game, 352, 224, player_name=str(new_id))
         new_player.id = new_id
         self.list_peer_connected_before_me[new_id] = connected_before_me
         self.game.other_player_list[new_id] = new_player
@@ -46,7 +46,7 @@ class Network:
         # add position
         message += (" ").join(["Pos", key]) + ";"
         # add name
-        message += (" ").join(["Name", self.name]) + ";"
+        message += (" ").join(["Name", self.player_name]) + ";"
         Cnetwork.master_send_all(message)
         if self.DEBUG: print("Master sent to all:" + message)
 	
@@ -98,7 +98,7 @@ class Network:
         # add position
         message += (" ").join(["Pos", key]) + ";"
         # add name
-        message += (" ").join(["Name", self.name]) + ";"
+        message += (" ").join(["Name", self.player_name]) + ";"
         Cnetwork.peer_send_all(message)
         if self.DEBUG: print("Peer sent to all : " , message)
         
@@ -115,8 +115,7 @@ class Network:
                     if self.DEBUG: print("[Python] received from player ", id_player, " :", key)
                     self.game.other_player_list[id_player].updateKey(key)
                 elif data[0] == "Name": # update name
-                    name = data[1]
-                    self.game.other_player_list[id_player].name = name
+                    self.game.other_player_list[id_player].player_name = data[1]
 
     #  PEER Get data from other peers
     def peer_get_data(self):
