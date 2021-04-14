@@ -46,6 +46,18 @@ class Player(pg.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
         self.damaged = False
+        self.name = self.game.network.name
+
+    def draw_name(self):
+        # draw name 
+        font = pg.font.SysFont(None, 20)
+        name = font.render(self.game.network.name, True, RED)
+        self.image.blit(name, (10, 0) )
+        # self.game.screen.blit(name, self.game.camera.apply(name))
+
+        # img = font.render(sysfont, True, RED)
+        # rect = img.get_rect()
+        # pygame.draw.rect(img, BLUE, rect, 1)
 
     def get_keys(self):
         self.rot_speed = 0
@@ -153,7 +165,7 @@ class Player(pg.sprite.Sprite):
             self.health = PLAYER_HEALTH
 
 class OtherPlayer(pg.sprite.Sprite):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, name):
         self._layer = PLAYER_LAYER
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -170,7 +182,13 @@ class OtherPlayer(pg.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
         self.damaged = False
+        self.name = name
 
+    def draw_name(self):
+        # draw name 
+        font = pg.font.SysFont(None, 20)
+        name = font.render(self.name, True, WHITE)
+        # self.image.blit(name, (10, 0) )
     # def get_keys(self):
     #     self.rot_speed = 0
     #     self.vel = vec(0, 0)

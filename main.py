@@ -238,7 +238,13 @@ class Game:
         for sprite in self.all_sprites:
             if isinstance(sprite, Mob):
                 sprite.draw_health()
+            # draw name Player
             self.screen.blit(sprite.image, self.camera.apply(sprite))
+            if isinstance(sprite, Player) or isinstance(sprite, OtherPlayer):
+                font = pg.font.SysFont(None, 20)
+                name = font.render(sprite.name, True, WHITE)
+                self.screen.blit(name, self.camera.apply(sprite))
+                # sprite.draw_name()
             if self.draw_debug:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(sprite.hit_rect), 1)
         if self.draw_debug:
@@ -308,6 +314,7 @@ try:
             g.menu.display_menu()
         g.run()
         g.show_go_screen()
-except:
+except Exception as E:
+    print(str(E))
     Cnetwork.close_socket()
     print("Closed!")
