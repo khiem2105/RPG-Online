@@ -46,6 +46,7 @@ class Player(pg.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
         self.damaged = False
+        self.player_name="Player"
 
     def get_keys(self):
         self.rot_speed = 0
@@ -170,6 +171,7 @@ class OtherPlayer(pg.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
         self.damaged = False
+        self.player_name = ""
 
     # def get_keys(self):
     #     self.rot_speed = 0

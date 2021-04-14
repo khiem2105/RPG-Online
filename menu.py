@@ -19,7 +19,7 @@ class Menu:
         # text entry
         self.port=str(self.game.port)
         self.port_text_entry=TextEntry(self.game, 250, 50, 200, 50, ENCHANT_FONT, 40, 25,self.port )
-        self.player_name=self.game.player_name
+        self.player_name=self.game.player.player_name
         self.player_name_text_entry=TextEntry(self.game, WIDTH-100, 50, 200, 50, ENCHANT_FONT, 40, 25,self.player_name )
         # text 
         self.text_port= Text(self.game.screen,100,50,"PORT",ENCHANT_FONT,WHITE_HEX,40)
@@ -60,4 +60,4 @@ class Menu:
         self.player_name_text_entry.handle_events(event)
         # update that value in to game
         self.game.port=int(self.port_text_entry.text)
-        self.game.player_name=self.player_name_text_entry.text
+        self.game.player.player_name=self.player_name_text_entry.text
