@@ -317,7 +317,7 @@ class Game:
             self.chatting = self.chat_box.handle_event(event)
             if event.type == pg.QUIT:
                 self.quit()
-            if self.chatting == False:
+            if self.chatting:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_ESCAPE:
                         self.quit()
