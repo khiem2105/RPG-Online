@@ -5,7 +5,7 @@ import Cnetwork
 class ChatBox:
     def __init__(self, game):
         self.game = game
-        self.surface = pygame.Surface((self.game.screen.get_width()//2, self.game.screen.get_height()//4)).convert()
+        self.surface = pygame.Surface((self.game.screen.get_width()//2, self.game.screen.get_height()//5)).convert()
         self.surface.fill((200, 200, 200))
         self.rect = self.surface.get_rect()
         self.rect.bottomleft = (0, self.game.screen.get_height())

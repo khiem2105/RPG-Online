@@ -214,7 +214,6 @@ class Game:
                 mob.health -= bullet.damage
             mob.vel = vec(0, 0)
 
-<<<<<<< HEAD
         self.chat_box.update()
 
     def draw_grid(self):
@@ -223,8 +222,6 @@ class Game:
         for y in range(0, HEIGHT, TILESIZE):
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
-=======
->>>>>>> 385133973d588f9307d147499c89906c7556df58
     def render_fog(self):
         # draw the light mask (gradient) onto fog image
         self.fog.fill(NIGHT_COLOR)
