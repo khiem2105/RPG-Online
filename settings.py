@@ -47,6 +47,7 @@ BARREL_OFFSET = vec(30, 10)
 
 # Weapon settings
 BULLET_IMG = 'bullet.png'
+WEAPONS_NAME=["pistol","uzi","shotgun"]
 WEAPONS = {}
 WEAPONS['pistol'] = {'bullet_speed': 500,
                      'bullet_lifetime': 1000,
@@ -64,6 +65,14 @@ WEAPONS['shotgun'] = {'bullet_speed': 400,
                       'damage': 5,
                       'bullet_size': 'sm',
                       'bullet_count': 12}
+WEAPONS['uzi'] = {'bullet_speed': 700,
+                      'bullet_lifetime': 500,
+                      'rate': 50,
+                      'kickback': 300,
+                      'spread': 7,
+                      'damage': 3,
+                      'bullet_size': 'sm',
+                      'bullet_count': 1}
 
 # Mob settings
 MOB_IMG = 'zombie1_hold.png'
@@ -95,7 +104,9 @@ ITEMS_LAYER = 1
 
 # Items
 ITEM_IMAGES = {'health': 'health_pack.png',
-               'shotgun': 'obj_shotgun.png'}
+               'shotgun': 'shotgun.png',
+               'uzi':'uzi.png',
+               'pistol':'pistol.png'}
 HEALTH_PACK_AMOUNT = 20
 BOB_RANGE = 10
 BOB_SPEED = 0.3

@@ -11,7 +11,7 @@ from sprites import *
 from tilemap import *
 from network import *
 from menu import *
-# from inventory import *
+from inventory import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -124,13 +124,14 @@ class Game:
                 if tile == 'H':
                     Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
                 if tile == 'G':
-                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'shotgun')
+                    gun=choice(WEAPONS_NAME) 
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
         self.camera = Camera(self.map.width, self.map.height)
-        # self.inventory = Inventory(self)
+        self.inventory = Inventory(self)
         self.draw_debug = False
         self.paused = False
         self.night = False
-        # self.inventory_is_activate= False
+        self.inventory_is_activate= False
         # init menu
         self.menu=Menu(self)
         self.menu_is_running=True
@@ -245,6 +246,8 @@ class Game:
         # pg.draw.rect(self.screen, WHITE, self.player.hit_rect, 2)
         if self.night:
             self.render_fog()
+        if self.inventory_is_activate:
+            self.inventory.display_inventory()
         # HUD functions
         draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
         self.draw_text('Zombies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
@@ -268,9 +271,8 @@ class Game:
                     self.paused = not self.paused
                 if event.key == pg.K_n:
                     self.night = not self.night
-                # if event.key ==pg.K_i:
-                #     self.inventory_is_activate = not self.inventory_is_activate
-                #     print("key",)
+                if event.key ==pg.K_i:
+                    self.inventory_is_activate = not self.inventory_is_activate
             if self.menu_is_running:
                 self.menu.check_input(event)
 
