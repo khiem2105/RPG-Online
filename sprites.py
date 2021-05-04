@@ -155,7 +155,7 @@ class Player(pg.sprite.Sprite):
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
         if self.key_pressed:
-            print(f"Position after updated: {self.pos}")
+            # print(f"Position after updated: {self.pos}")
             self.key_pressed = False
 
     def add_health(self, amount):
@@ -254,7 +254,7 @@ class OtherPlayer(pg.sprite.Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
-        print(f"Position after updated: {self.pos}")
+        # print(f"Position after updated: {self.pos}")
 
     def update(self):
         # self.get_keys()

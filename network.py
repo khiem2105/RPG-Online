@@ -13,7 +13,7 @@ from sprites import OtherPlayer
 
 class Network:
     def __init__(self, game):
-        self.DEBUG = True
+        self.DEBUG = False
         self.game = game
         self.player_name = input("Your name :")
         self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 

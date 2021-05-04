@@ -4,7 +4,7 @@
 # Video link: https://youtu.be/IWm5hi5Yrvk
 import pygame as pg
 import sys
-from random import choice, random
+from random import choice, random, randint
 from os import path
 from settings import *
 from sprites import *
@@ -87,6 +87,51 @@ class Game:
         self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
         
+    def extend_map(self):
+        # print(self.player.pos)
+        # print(self.map.width, self.map.height)
+        # print(self.camera.camera)
+        # print(self.camera.width, self.camera.height)
+        
+        N = 15
+        EXTEND_SIZE = TILESIZE * N
+        if self.player.pos[0] > self.map.width - WIDTH:
+            # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
+            self.map.width += EXTEND_SIZE
+            self.camera.width += EXTEND_SIZE
+            self.camera.camera.width += EXTEND_SIZE
+            for ext_col in range(15):
+                for row in range(self.map.tileheight):
+                    if row == 0:
+                        # Default the first tile is Wall
+                        Wall(self, self.map.tilewidth + ext_col, row)
+                    else:
+                        # 0 -> nothing, 1 -> wall ; prob = 33% Wall
+                        if randint(0, 2) % 2:
+                            Wall(self, self.map.tilewidth + ext_col, row)
+
+            self.map.tilewidth += N
+            print("Extended map to the size: ", self.map.width, "x", self.map.height)
+        if self.player.pos[1] > self.map.height - HEIGHT:
+            # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
+            self.map.height += EXTEND_SIZE
+            self.camera.height += EXTEND_SIZE
+            self.camera.camera.height   += EXTEND_SIZE
+            for ext_row in range(15):
+                for col in range(self.map.tilewidth):
+                    if col == 0:
+                        # Default the first tile is Wall
+                        Wall(self, col,self.map.tileheight + ext_row)
+                    else:
+                        # 0 -> nothing, 1 -> wall ; prob = 33% Wall
+                        if randint(0, 2) % 2:
+                            Wall(self, col,self.map.tileheight + ext_row)
+
+            self.map.tileheight += N
+            print("Extended map to the size: ", self.map.width, "x", self.map.height)
+
+
+
 
     def new(self):
         # initialize all variables and do all the setup for a new game
@@ -142,6 +187,8 @@ class Game:
             self.events()
             if not self.paused:
                 self.update()
+            # Extend map to map illimited 
+            self.extend_map()
             self.draw()
             # print(f"player name {self.player.player_name} other player {self.other_player_list}")
             if self.network.is_master:
