@@ -45,9 +45,6 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
-        
-        
-        
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
