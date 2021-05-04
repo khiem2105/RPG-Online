@@ -120,10 +120,13 @@ class Game:
                 if tile == '1':
                     Wall(self, col, row)
                 if tile == 'M':
-                    Mob(self, col, row)
+                    Mob(self, col*TILESIZE, row*TILESIZE)
                 if tile == 'P':
-                    print(f"player {col,row}")
-                    self.player = Player(self, int(col*TILESIZE), int(row*TILESIZE))
+                    self.player = Player(self, col*TILESIZE, row*TILESIZE)
+                if tile == 'H':
+                    Item(self, [col*TILESIZE,row*TILESIZE], 'health')
+                if tile == 'G':
+                    Item(self, [col*TILESIZE,row*TILESIZE], 'shotgun')
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
@@ -209,12 +212,6 @@ class Game:
                 mob.health -= bullet.damage
             mob.vel = vec(0, 0)
 
-    def draw_grid(self):
-        for x in range(0, WIDTH, TILESIZE):
-            pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
-        for y in range(0, HEIGHT, TILESIZE):
-            pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
-
     def render_fog(self):
         # draw the light mask (gradient) onto fog image
         self.fog.fill(NIGHT_COLOR)
@@ -226,7 +223,6 @@ class Game:
         pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
         self.screen.fill(BGCOLOR)
         # self.screen.blit(self.map_img, self.camera.apply(self.map))
-        self.draw_grid()
         for sprite in self.all_sprites:
             if isinstance(sprite, Mob):
                 sprite.draw_health()
