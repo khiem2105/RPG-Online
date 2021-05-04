@@ -48,6 +48,7 @@ class Player(pg.sprite.Sprite):
         self.player_name = self.game.network.player_name
         self.last_move = 0
         self.key_pressed = False
+        print(self.pos)
         # self.last_received_key = None
 
     def draw_name(self):

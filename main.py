@@ -62,7 +62,7 @@ class Game:
         fonts_folder = path.join(game_folder, 'fonts')
         self.img_folder = img_folder
         self.fonts_folder =fonts_folder
-        self.map_folder = path.join(game_folder, 'maps_v2')
+        self.map_folder = path.join(game_folder, 'maps')
         self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
         self.hud_font = path.join(img_folder, 'Impacted2.0.ttf')
         self.map = Map(path.join(self.map_folder, 'map3.txt'))
@@ -123,7 +123,7 @@ class Game:
                     Mob(self, col, row)
                 if tile == 'P':
                     print(f"player {col,row}")
-                    self.player = Player(self, col, row)
+                    self.player = Player(self, int(col*TILESIZE), int(row*TILESIZE))
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
