@@ -143,11 +143,14 @@ class Game:
             if not self.paused:
                 self.update()
             self.draw()
-            if not self.network.is_master:
+            # print(f"player name {self.player.player_name} other player {self.other_player_list}")
+            if self.network.is_master:
+                g.network.run_master()
+            else:
                 if self.network.first_message:
                     self.network.receive_first_message()
-                # else:
-                #     self.network.run_peer()
+                else:
+                    self.network.run_peer()
 
     def quit(self):
         pg.quit()
@@ -228,6 +231,16 @@ class Game:
             if isinstance(sprite, Mob):
                 sprite.draw_health()
             self.screen.blit(sprite.image, self.camera.apply(sprite))
+            # draw name Player
+            if isinstance(sprite, Player): 
+                font = pg.font.SysFont(None, 20)
+                player_name = font.render(sprite.player_name, True, RED)
+                self.screen.blit(player_name, self.camera.apply(sprite))
+            if isinstance(sprite, OtherPlayer):
+                font = pg.font.SysFont(None, 20)
+                player_name = font.render(sprite.player_name, True, WHITE)
+                self.screen.blit(player_name, self.camera.apply(sprite))
+
             if self.draw_debug:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(sprite.hit_rect), 1)
         if self.draw_debug:
@@ -297,6 +310,7 @@ try:
             g.menu.display_menu()
         g.run()
         g.show_go_screen()
-except:
+except Exception as E:
+    print(str(E))
     Cnetwork.close_socket()
     print("Closed!")

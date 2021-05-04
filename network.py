@@ -13,16 +13,19 @@ from sprites import OtherPlayer
 
 class Network:
     def __init__(self, game):
+        self.DEBUG = True
         self.game = game
+        self.player_name = input("Your name :")
         self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 
         # self.number_peers = 0
         print("[Python] Thread Python is running!")
         self.first_message = True
         self.list_peer_connected_before_me = {} # {id : True/False}
+        self.data_frame = ""
 
     def add_new_player(self, new_id, connected_before_me=False):
         print("[Python] Welcome player id %i!" %(new_id))
-        new_player = OtherPlayer(self.game, 352, 224)
+        new_player = OtherPlayer(self.game, 352, 224, player_name=str(new_id))
         new_player.id = new_id
         self.list_peer_connected_before_me[new_id] = connected_before_me
         self.game.other_player_list[new_id] = new_player
@@ -35,13 +38,22 @@ class Network:
         Cnetwork.listen_and_accept()
         Cnetwork.master_peer_start_loop()
 
-    def run_master(self, key):
+    def add_key_to_data(self, key):
+        self.data_frame  += (" ").join(["Pos", key]) + ";"
+        
+    def run_master(self):
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
-        # Reieive data of peers
-        message = "Data;"+key+";"
+        # Check if data_frame = NULL => return (not send)
+        if self.data_frame == "":
+            return
+        # add name
+        message = self.data_frame
+        message += (" ").join(["Name", self.player_name]) + ";"
         Cnetwork.master_send_all(message)
-        print("Master sent to all:" + message)
+        if self.DEBUG: print("Master sent to all:" + message)
+        # reset message
+        self.data_frame = ""
 	
     #  MASTER Get data from other peers
     def master_get_data(self):
@@ -51,7 +63,7 @@ class Network:
         try:
             data = Cnetwork.master_get_to_know_new_connection()
             if data != None and data != "":
-                print("Received new connection :", data)
+                if self.DEBUG: print("Received new connection :", data)
                 data = data.split(';')
                 if data[0] == "New":
                     new_id = int(data[1])
@@ -65,12 +77,13 @@ class Network:
             for i in self.list_id():
                 data = Cnetwork.master_get_message_from_player(i)
                 if data != None:
-                    print("[Python] Master received data from player ",i ," : ", data)
-                    data = data.split(';')
-                    if data[0] == "Data":
-                        #  x, y = data[1].split(',')
-                        key = data[1]
-                        self.game.other_player_list[i].updateKey(key)
+                    if self.DEBUG: print("[Python] Master received data from player ",i ," : ", data)
+                    self.analyse_data_received(data, i)
+                    # data = data.split(';')
+                    # if data[0] == "Data":
+                        # #  x, y = data[1].split(',')
+                        # key = data[1]
+                        # self.game.other_player_list[i].updateKey(key)
         except Exception as E:
             print(str(E))
 
@@ -83,21 +96,33 @@ class Network:
         Cnetwork.peer_connect_to_master(port, ip)
         self.add_new_player(-1, True)
     
-    def run_peer(self,key):
-        # send 
-        message="Data;"+key+";"
+    def run_peer(self):
+        # Check if data_frame = NULL => return (not send)
+        if self.data_frame == "":
+            return
+        # Send data
+        message = self.data_frame
+        # add name
+        message += (" ").join(["Name", self.player_name]) + ";"
         Cnetwork.peer_send_all(message)
-        print("Peer sent to all : " , message)
+        if self.DEBUG: print("Peer sent to all : " , message)
+        # reset message
+        self.data_frame = ""
         
-    def analyse_data_received(self, data, id_player):
-        if data != None and data != "":
-            data = data.split(';')
-            if (id_player == -1) :
-                print("data_master:", data)
-            if data[0] == "Data":
-                key = data[1]
-                print("[Python] received from player ", id_player, " :", key)
-                self.game.other_player_list[id_player].updateKey(key)
+    def analyse_data_received(self, data_received, id_player):
+        if data_received != None and data_received != "":
+            data_received = data_received.split(';')
+            for data in data_received:
+                data = data.split(" ")
+                if self.DEBUG: 
+                    if id_player == -1: print("data_master:", data)
+                # update position
+                if data[0] == "Pos":
+                    key = data[1]
+                    if self.DEBUG: print("[Python] received from player ", id_player, " :", key)
+                    self.game.other_player_list[id_player].updateKey(key)
+                elif data[0] == "Name": # update name
+                    self.game.other_player_list[id_player].player_name = data[1]
 
     #  PEER Get data from other peers
     def peer_get_data(self):
@@ -113,13 +138,17 @@ class Network:
                 if i == -1 or not self.list_peer_connected_before_me[i]: continue
                 data = Cnetwork.peer_receive_from_old_peer(i)
                 self.analyse_data_received(data, i)
-                if data != "" : print("Worked : ", data)
+                if data != "" : 
+                    if self.DEBUG: print("Worked : ", data)
 
             # Receive data from new peers 
             for i in self.list_id():
                 if i == -1 or self.list_peer_connected_before_me[i]: continue # != id master
+                # print("Tentative get data from player ", i)
                 data = Cnetwork.peer_get_message_from_player(i)
                 self.analyse_data_received(data, i)
+                if data != "" and data is not None:
+                    print("Works :", data)
 
         except Exception as E:
             print(str(E))

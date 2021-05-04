@@ -2,7 +2,6 @@ from os import truncate
 import pygame as pg
 from random import uniform, choice, randint, random
 from settings import *
-import numpy
 from tilemap import collide_hit_rect
 import pytweening as tween
 from itertools import chain
@@ -46,46 +45,67 @@ class Player(pg.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
         self.damaged = False
-        self.player_name="Player"
+        self.player_name = self.game.network.player_name
+        self.last_move = 0
+        self.key_pressed = False
+        # self.last_received_key = None
+
+    def draw_name(self):
+        # draw namettttttttttttttttttttttttttttttttttf 
+        font = pg.font.SysFont(None, 20)
+        player_name = font.render(self.game.network.player_name, True, RED)
+        self.image.blit(player_name, (10, 0) )
+        # self.game.screen.blit(name, self.game.camera.apply(name))
+
+        # img = font.render(sysfont, True, RED)
+        # rect = img.get_rect()
+        # pygame.draw.rect(img, BLUE, rect, 1)
 
     def get_keys(self):
         self.rot_speed = 0
         self.vel = vec(0, 0)
-        keys = pg.key.get_pressed()
-        if keys[pg.K_LEFT] or keys[pg.K_a]:
-            self.rot_speed = PLAYER_ROT_SPEED
-            if not self.game.network.is_master :
-                self.game.network.run_peer('L')
-            else:
-                self.game.network.run_master('L')
+        now = pg.time.get_ticks()
+        if now - self.last_move > self.game.dt:
+            keys = pg.key.get_pressed()
+            if keys[pg.K_LEFT] or keys[pg.K_a]:
+                self.key_pressed = True
+                self.rot_speed = PLAYER_ROT_SPEED
+                if not self.game.network.is_master :
+                    self.game.network.run_peer('L')
+                else:
+                    self.game.network.run_master('L')
 
-        if keys[pg.K_RIGHT] or keys[pg.K_d]:
-            self.rot_speed = -PLAYER_ROT_SPEED
-            if not self.game.network.is_master :
-                self.game.network.run_peer('R')
-            else:
-                self.game.network.run_master('R')
+            if keys[pg.K_RIGHT] or keys[pg.K_d]:
+                self.key_pressed = True
+                self.rot_speed = -PLAYER_ROT_SPEED
+                if not self.game.network.is_master :
+                    self.game.network.run_peer('R')
+                else:
+                    self.game.network.run_master('R')
 
-        if keys[pg.K_UP] or keys[pg.K_w]:
-            self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
-            if not self.game.network.is_master :
-                self.game.network.run_peer('U')
-            else:
-                self.game.network.run_master('U')
+            if keys[pg.K_UP] or keys[pg.K_w]:
+                self.key_pressed = True
+                self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
+                if not self.game.network.is_master :
+                    self.game.network.run_peer('U')
+                else:
+                    self.game.network.run_master('U')
 
-        if keys[pg.K_DOWN] or keys[pg.K_s]:
-            self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
-            if not self.game.network.is_master :
-                self.game.network.run_peer('D')
-            else:
-                self.game.network.run_master('D')
+            if keys[pg.K_DOWN] or keys[pg.K_s]:
+                self.key_pressed = True
+                self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
+                if not self.game.network.is_master :
+                    self.game.network.run_peer('D')
+                else:
+                    self.game.network.run_master('D')
 
-        if keys[pg.K_SPACE]:
-            self.shoot()
-            if not self.game.network.is_master :
-                self.game.network.run_peer('S')
-            else:
-                self.game.network.run_master('S')
+            if keys[pg.K_SPACE]:
+                self.key_pressed = True
+                self.shoot()
+                if not self.game.network.is_master :
+                    self.game.network.run_peer('S')
+                else:
+                    self.game.network.run_master('S')
 
     def shoot(self):
         now = pg.time.get_ticks()
@@ -147,6 +167,9 @@ class Player(pg.sprite.Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
+        if self.key_pressed:
+            print(f"Position after updated: {self.pos}")
+            self.key_pressed = False
 
     def add_health(self, amount):
         self.health += amount
@@ -154,7 +177,7 @@ class Player(pg.sprite.Sprite):
             self.health = PLAYER_HEALTH
 
 class OtherPlayer(pg.sprite.Sprite):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, player_name):
         self._layer = PLAYER_LAYER
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -171,8 +194,15 @@ class OtherPlayer(pg.sprite.Sprite):
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
         self.damaged = False
-        self.player_name = ""
+        self.player_name = player_name
+        self.last_received_key = None
+        print(f"Position initial: {self.pos}")
 
+    def draw_name(self):
+        # draw name 
+        font = pg.font.SysFont(None, 20)
+        player_name = font.render(self.player_name, True, WHITE)
+        # self.image.blit(name, (10, 0) )
     # def get_keys(self):
     #     self.rot_speed = 0
     #     self.vel = vec(0, 0)
@@ -237,7 +267,7 @@ class OtherPlayer(pg.sprite.Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
-        print(self.rect,self.pos)
+        print(f"Position after updated: {self.pos}")
 
     def update(self):
         # self.get_keys()
@@ -264,7 +294,6 @@ class OtherPlayer(pg.sprite.Sprite):
         self.health += amount
         if self.health > PLAYER_HEALTH:
             self.health = PLAYER_HEALTH
-##################################################################################################################
 
 class Mob(pg.sprite.Sprite):
     def __init__(self, game, x, y):
