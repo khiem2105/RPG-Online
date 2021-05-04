@@ -4,7 +4,7 @@
 # Video link: https://youtu.be/IWm5hi5Yrvk
 import pygame as pg
 import sys
-from random import choice, random
+from random import choice, random, randint
 from os import path
 from settings import *
 from sprites import *
@@ -45,6 +45,10 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
+        self.chat_box = ChatBox(self)
+        self.chatting = False
+        
+        
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
@@ -88,6 +92,51 @@ class Game:
         self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
         
+    def extend_map(self):
+        # print(self.player.pos)
+        # print(self.map.width, self.map.height)
+        # print(self.camera.camera)
+        # print(self.camera.width, self.camera.height)
+        
+        N = 15
+        EXTEND_SIZE = TILESIZE * N
+        if self.player.pos[0] > self.map.width - WIDTH:
+            # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
+            self.map.width += EXTEND_SIZE
+            self.camera.width += EXTEND_SIZE
+            self.camera.camera.width += EXTEND_SIZE
+            for ext_col in range(15):
+                for row in range(self.map.tileheight):
+                    if row == 0:
+                        # Default the first tile is Wall
+                        Wall(self, self.map.tilewidth + ext_col, row)
+                    else:
+                        # 0 -> nothing, 1 -> wall ; prob = 33% Wall
+                        if randint(0, 2) % 2:
+                            Wall(self, self.map.tilewidth + ext_col, row)
+
+            self.map.tilewidth += N
+            print("Extended map to the size: ", self.map.width, "x", self.map.height)
+        if self.player.pos[1] > self.map.height - HEIGHT:
+            # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
+            self.map.height += EXTEND_SIZE
+            self.camera.height += EXTEND_SIZE
+            self.camera.camera.height   += EXTEND_SIZE
+            for ext_row in range(15):
+                for col in range(self.map.tilewidth):
+                    if col == 0:
+                        # Default the first tile is Wall
+                        Wall(self, col,self.map.tileheight + ext_row)
+                    else:
+                        # 0 -> nothing, 1 -> wall ; prob = 33% Wall
+                        if randint(0, 2) % 2:
+                            Wall(self, col,self.map.tileheight + ext_row)
+
+            self.map.tileheight += N
+            print("Extended map to the size: ", self.map.width, "x", self.map.height)
+
+
+
 
     def new(self):
         # initialize all variables and do all the setup for a new game
@@ -146,15 +195,13 @@ class Game:
             self.events()
             if not self.paused:
                 self.update()
+            # Extend map to map unlimited 
+            self.extend_map()
             self.draw()
             # print(f"player name {self.player.player_name} other player {self.other_player_list}")
-            if self.network.is_master:
-                g.network.run_master()
-            else:
+            if not self.network.is_master:
                 if self.network.first_message:
                     self.network.receive_first_message()
-                else:
-                    self.network.run_peer()
 
     def quit(self):
         pg.quit()
@@ -165,8 +212,8 @@ class Game:
         self.all_sprites.update()
         self.camera.update(self.player)
         # game over?
-        if len(self.mobs) == 0:
-            self.playing = False
+        # if len(self.mobs) == 0:
+        #     self.playing = False
         # player hits items
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
@@ -213,6 +260,14 @@ class Game:
                 mob.health -= bullet.damage
             mob.vel = vec(0, 0)
 
+        self.chat_box.update()
+
+    def draw_grid(self):
+        for x in range(0, WIDTH, TILESIZE):
+            pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
+        for y in range(0, HEIGHT, TILESIZE):
+            pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
+
     def render_fog(self):
         # draw the light mask (gradient) onto fog image
         self.fog.fill(NIGHT_COLOR)
@@ -255,13 +310,25 @@ class Game:
         if self.paused:
             self.screen.blit(self.dim_screen, (0, 0))
             self.draw_text("Paused", self.title_font, 105, RED, WIDTH / 2, HEIGHT / 2, align="center")
+        self.chat_box.draw()
         pg.display.flip()
 
     def events(self):
         # catch all events here
         for event in pg.event.get():
+            self.chatting = self.chat_box.handle_event(event)
             if event.type == pg.QUIT:
                 self.quit()
+            if self.chatting:
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE:
+                        self.quit()
+                    if event.key == pg.K_h:
+                        self.draw_debug = not self.draw_debug
+                    if event.key == pg.K_p:
+                        self.paused = not self.paused
+                    if event.key == pg.K_n:
+                        self.night = not self.night
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.quit()
