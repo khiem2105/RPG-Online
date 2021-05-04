@@ -46,6 +46,7 @@ class Game:
         self.clock = pg.time.Clock()
         self.load_data()
         self.chat_box = ChatBox(self)
+        self.chatting = False
         
         
 
@@ -268,10 +269,10 @@ class Game:
     def events(self):
         # catch all events here
         for event in pg.event.get():
-            chatting = self.chat_box.handle_event(event)
+            self.chatting = self.chat_box.handle_event(event)
             if event.type == pg.QUIT:
                 self.quit()
-            if chatting == False:
+            if self.chatting == False:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_ESCAPE:
                         self.quit()
