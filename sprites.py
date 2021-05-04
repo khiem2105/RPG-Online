@@ -64,7 +64,6 @@ class Player(pg.sprite.Sprite):
     def get_keys(self):
         self.rot_speed = 0
         self.vel = vec(0, 0)
-<<<<<<< HEAD
         keys = pg.key.get_pressed()
         if keys[pg.K_LEFT] or keys[pg.K_a]:
             self.rot_speed = PLAYER_ROT_SPEED
@@ -84,7 +83,6 @@ class Player(pg.sprite.Sprite):
         if keys[pg.K_SPACE]:
             self.shoot()
             self.game.network.add_key_to_data('S')
-=======
         now = pg.time.get_ticks()
         if now - self.last_move > self.game.dt:
             keys = pg.key.get_pressed()
@@ -127,7 +125,6 @@ class Player(pg.sprite.Sprite):
                     self.game.network.run_peer('S')
                 else:
                     self.game.network.run_master('S')
->>>>>>> 6ac67c37b402ca2a8fd9c494bab38febe6769d9a
 
     def shoot(self):
         now = pg.time.get_ticks()
