@@ -11,6 +11,7 @@ from sprites import *
 from tilemap import *
 from network import *
 from menu import *
+# from inventory import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -162,17 +163,19 @@ class Game:
                 if tile == '1':
                     Wall(self, col, row)
                 if tile == 'M':
-                    Mob(self, col*TILESIZE, row*TILESIZE)
+                    Mob(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'P':
-                    self.player = Player(self, col*TILESIZE, row*TILESIZE)
+                    self.player = Player(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'H':
-                    Item(self, [col*TILESIZE,row*TILESIZE], 'health')
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
                 if tile == 'G':
-                    Item(self, [col*TILESIZE,row*TILESIZE], 'shotgun')
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'shotgun')
         self.camera = Camera(self.map.width, self.map.height)
+        # self.inventory = Inventory(self)
         self.draw_debug = False
         self.paused = False
         self.night = False
+        # self.inventory_is_activate= False
         # init menu
         self.menu=Menu(self)
         self.menu_is_running=True
@@ -191,13 +194,9 @@ class Game:
             self.extend_map()
             self.draw()
             # print(f"player name {self.player.player_name} other player {self.other_player_list}")
-            if self.network.is_master:
-                g.network.run_master()
-            else:
+            if not self.network.is_master:
                 if self.network.first_message:
                     self.network.receive_first_message()
-                else:
-                    self.network.run_peer()
 
     def quit(self):
         pg.quit()
@@ -208,8 +207,8 @@ class Game:
         self.all_sprites.update()
         self.camera.update(self.player)
         # game over?
-        if len(self.mobs) == 0:
-            self.playing = False
+        # if len(self.mobs) == 0:
+        #     self.playing = False
         # player hits items
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
@@ -286,7 +285,6 @@ class Game:
         if self.draw_debug:
             for wall in self.walls:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
-
         # pg.draw.rect(self.screen, WHITE, self.player.hit_rect, 2)
         if self.night:
             self.render_fog()
@@ -313,6 +311,9 @@ class Game:
                     self.paused = not self.paused
                 if event.key == pg.K_n:
                     self.night = not self.night
+                # if event.key ==pg.K_i:
+                #     self.inventory_is_activate = not self.inventory_is_activate
+                #     print("key",)
             if self.menu_is_running:
                 self.menu.check_input(event)
 
