@@ -12,6 +12,7 @@ from tilemap import *
 from network import *
 from menu import *
 from inventory import *
+from chat_box import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
