@@ -120,13 +120,13 @@ class Game:
                 if tile == '1':
                     Wall(self, col, row)
                 if tile == 'M':
-                    Mob(self, col*TILESIZE, row*TILESIZE)
+                    Mob(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'P':
-                    self.player = Player(self, col*TILESIZE, row*TILESIZE)
+                    self.player = Player(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'H':
-                    Item(self, [col*TILESIZE,row*TILESIZE], 'health')
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
                 if tile == 'G':
-                    Item(self, [col*TILESIZE,row*TILESIZE], 'shotgun')
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'shotgun')
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
@@ -242,7 +242,6 @@ class Game:
         if self.draw_debug:
             for wall in self.walls:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
-
         # pg.draw.rect(self.screen, WHITE, self.player.hit_rect, 2)
         if self.night:
             self.render_fog()

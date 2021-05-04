@@ -340,11 +340,13 @@ class Mob(pg.sprite.Sprite):
             self.rect.center = self.pos
             self.acc = vec(1, 0).rotate(-self.rot)
             self.avoid_mobs()
-            self.acc.scale_to_length(self.speed)
+            if(self.acc.length_squared()>0):
+                self.acc.scale_to_length(self.speed)
             self.acc += self.vel * -1
             self.vel += self.acc * self.game.dt
-            self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
-
+            temp=self.pos + self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
+            if temp.x<=self.game.map.width and temp.x>=0 and temp.y<=self.game.map.height and temp.y>=0:
+                self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
             self.hit_rect.centerx = self.pos.x
             collide_with_walls(self, self.game.walls, 'x')
             self.hit_rect.centery = self.pos.y
@@ -353,7 +355,7 @@ class Mob(pg.sprite.Sprite):
         if self.health <= 0:
             # choice(self.game.zombie_hit_sounds).play()
             self.kill()
-            self.game.map_img.blit(self.game.splat, self.pos - vec(32, 32))
+            self.game.screen.blit(self.game.splat, self.pos - vec(32, 32))
 
     def draw_health(self):
         if self.health > 60:
