@@ -13,7 +13,7 @@ from sprites import OtherPlayer
 
 class Network:
     def __init__(self, game):
-        self.DEBUG = True
+        self.DEBUG = False
         self.game = game
         self.player_name = input("Your name :")
         self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 
@@ -33,7 +33,7 @@ class Network:
         print("[Python] List of players : ", self.game.other_player_list)
 
     def init_master(self):
-        print("[Python] your are the master peer! with port "+str(self.game.port))
+        print("[Python] you are the master peer! with port "+str(self.game.port))
         Cnetwork.create_and_bind(self.game.port)
         Cnetwork.listen_and_accept()
         Cnetwork.master_peer_start_loop()
@@ -96,7 +96,7 @@ class Network:
             print(str(E))
 
     def init_peer(self):
-        print("[Python] your are the normal peer! with port "+str(self.game.port))
+        print("[Python] you are the normal peer! with port "+str(self.game.port))
         ip = "127.0.0.1"
         port = self.game.port
         # port = 2510

@@ -138,7 +138,8 @@ class Player(pg.sprite.Sprite):
         else:
             self.game.network.master_get_data()
 
-        self.get_keys()
+        if not self.game.chatting:
+            self.get_keys()
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
         if self.damaged:
