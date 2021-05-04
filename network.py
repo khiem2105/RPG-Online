@@ -39,7 +39,10 @@ class Network:
         Cnetwork.master_peer_start_loop()
 
     def add_pos_to_data(self, x, y, rot):
-        self.data_frame  += (" ").join(["Pos", str(x), str(y), str(rot)]) + ";"
+        self.data_frame  += (" ").join(["Pos:", str(x), str(y), str(rot)]) + ";"
+
+    def add_action_to_data(self, action="S"):
+        self.data_frame += (" ").join(["Action:", action]) + ";"
         
     def run_master(self):
         # Send data of master to all peers
@@ -49,7 +52,7 @@ class Network:
             return
         # add name
         message = self.data_frame
-        message += (" ").join(["Name", self.player_name]) + ";"
+        message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.master_send_all(message)
         if self.DEBUG: print("Master sent to all:" + message)
         # reset message
@@ -108,7 +111,7 @@ class Network:
         # Send data
         message = self.data_frame
         # add name
-        message += (" ").join(["Name", self.player_name]) + ";"
+        message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.peer_send_all(message)
         if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
@@ -122,12 +125,16 @@ class Network:
                 if self.DEBUG: 
                     if id_player == -1: print("data_master:", data)
                 # update position
-                if data[0] == "Pos":
+                if data[0] == "Pos:":
                     pos = float(data[1]), float(data[2])
                     rot = float(data[3])
                     if self.DEBUG: print("[Python] received from player ", id_player, " :", pos, rot)
                     self.game.other_player_list[id_player].updatePosRot(pos, rot)
-                elif data[0] == "Name": # update name
+                elif data[0] == "Action:":
+                    action = data[1]
+                    if self.DEBUG: print("[Python] received from player ", id_player, " :", action)
+                    self.game.other_player_list[id_player].updateAction(action)
+                elif data[0] == "Name:": # update name
                     self.game.other_player_list[id_player].player_name = data[1]
 
     #  PEER Get data from other peers

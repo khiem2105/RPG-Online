@@ -111,3 +111,7 @@ WEAPON_SOUNDS = {'pistol': ['pistol.wav'],
 EFFECTS_SOUNDS = {'level_start': 'level_start.wav',
                   'health_up': 'health_pack.wav',
                   'gun_pickup': 'gun_pickup.wav'}
+
+
+#Send data
+TIME_GAPS = 0.1
