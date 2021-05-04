@@ -67,6 +67,9 @@ class Game:
         self.map_folder = path.join(game_folder, 'maps')
         self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
         self.hud_font = path.join(img_folder, 'Impacted2.0.ttf')
+        self.map = Map(path.join(self.map_folder, 'map3.txt'))
+        self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()
+        self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE, TILESIZE))
         self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()
         self.dim_screen.fill((0, 0, 0, 180))
         self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
@@ -88,29 +91,7 @@ class Game:
         self.light_mask = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
         self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
-        # Sound loading
-        # pg.mixer.music.load(path.join(music_folder, BG_MUSIC))
-        # self.effects_sounds = {}
-        # for type in EFFECTS_SOUNDS:
-        #     self.effects_sounds[type] = pg.mixer.Sound(path.join(snd_folder, EFFECTS_SOUNDS[type]))
-        # self.weapon_sounds = {}
-        # for weapon in WEAPON_SOUNDS:
-        #     self.weapon_sounds[weapon] = []
-        #     for snd in WEAPON_SOUNDS[weapon]:
-        #         s = pg.mixer.Sound(path.join(snd_folder, snd))
-        #         s.set_volume(0.3)
-        #         self.weapon_sounds[weapon].append(s)
-        # self.zombie_moan_sounds = []
-        # for snd in ZOMBIE_MOAN_SOUNDS:
-        #     s = pg.mixer.Sound(path.join(snd_folder, snd))
-        #     s.set_volume(0.2)
-        #     self.zombie_moan_sounds.append(s)
-        # self.player_hit_sounds = []
-        # for snd in PLAYER_HIT_SOUNDS:
-        #     self.player_hit_sounds.append(pg.mixer.Sound(path.join(snd_folder, snd)))
-        # self.zombie_hit_sounds = []
-        # for snd in ZOMBIE_HIT_SOUNDS:
-        #     self.zombie_hit_sounds.append(pg.mixer.Sound(path.join(snd_folder, snd)))
+        
 
     def new(self):
         # initialize all variables and do all the setup for a new game
@@ -119,23 +100,35 @@ class Game:
         self.mobs = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
-        self.map = TiledMap(path.join(self.map_folder, 'level1.tmx'))
-        self.map_img = self.map.make_map()
-        self.map.rect = self.map_img.get_rect()
-        for tile_object in self.map.tmxdata.objects:
-            obj_center = vec(tile_object.x + tile_object.width / 2,
-                             tile_object.y + tile_object.height / 2)
-            if tile_object.name == 'player':
-                self.player = Player(self, obj_center.x, obj_center.y)
-                # # add other_player test version
-                # self.other_player_list.append(OtherPlayer(self, obj_center.x, obj_center.y))
-            if tile_object.name == 'zombie':
-                Mob(self, obj_center.x, obj_center.y)
-            if tile_object.name == 'wall':
-                Obstacle(self, tile_object.x, tile_object.y,
-                         tile_object.width, tile_object.height)
-            if tile_object.name in ['health', 'shotgun']:
-                Item(self, obj_center, tile_object.name)
+        # self.map = TiledMap(path.join(self.map_folder, 'level1.tmx'))
+        # self.map_img = self.map.make_map()
+        # self.map.rect = self.map_img.get_rect()
+        # for tile_object in self.map.tmxdata.objects:
+        #     obj_center = vec(tile_object.x + tile_object.width / 2,
+        #                      tile_object.y + tile_object.height / 2)
+        #     if tile_object.name == 'player':
+        #         self.player = Player(self, obj_center.x, obj_center.y)
+        #         # # add other_player test version
+        #         # self.other_player_list.append(OtherPlayer(self, obj_center.x, obj_center.y))
+        #     if tile_object.name == 'zombie':
+        #         Mob(self, obj_center.x, obj_center.y)
+        #     if tile_object.name == 'wall':
+        #         Obstacle(self, tile_object.x, tile_object.y,
+        #                  tile_object.width, tile_object.height)
+        #     if tile_object.name in ['health', 'shotgun']:
+        #         Item(self, obj_center, tile_object.name)
+        for row, tiles in enumerate(self.map.data):
+            for col, tile in enumerate(tiles):
+                if tile == '1':
+                    Wall(self, col, row)
+                if tile == 'M':
+                    Mob(self, col*TILESIZE, row*TILESIZE)
+                if tile == 'P':
+                    self.player = Player(self, col*TILESIZE, row*TILESIZE)
+                if tile == 'H':
+                    Item(self, [col*TILESIZE,row*TILESIZE], 'health')
+                if tile == 'G':
+                    Item(self, [col*TILESIZE,row*TILESIZE], 'shotgun')
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
         self.paused = False
@@ -221,6 +214,7 @@ class Game:
                 mob.health -= bullet.damage
             mob.vel = vec(0, 0)
 
+<<<<<<< HEAD
         self.chat_box.update()
 
     def draw_grid(self):
@@ -229,6 +223,8 @@ class Game:
         for y in range(0, HEIGHT, TILESIZE):
             pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
 
+=======
+>>>>>>> 385133973d588f9307d147499c89906c7556df58
     def render_fog(self):
         # draw the light mask (gradient) onto fog image
         self.fog.fill(NIGHT_COLOR)
@@ -238,9 +234,8 @@ class Game:
 
     def draw(self):
         pg.display.set_caption("{:.2f}".format(self.clock.get_fps()))
-        # self.screen.fill(BGCOLOR)
-        self.screen.blit(self.map_img, self.camera.apply(self.map))
-        # self.draw_grid()
+        self.screen.fill(BGCOLOR)
+        # self.screen.blit(self.map_img, self.camera.apply(self.map))
         for sprite in self.all_sprites:
             if isinstance(sprite, Mob):
                 sprite.draw_health()
