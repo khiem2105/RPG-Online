@@ -8,7 +8,6 @@ from random import choice, random
 from os import path
 from settings import *
 from sprites import *
-from tilemap import *
 from network import *
 from menu import *
 

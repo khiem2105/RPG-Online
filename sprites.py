@@ -52,7 +52,7 @@ class Player(pg.sprite.Sprite):
         # self.last_received_key = None
 
     def draw_name(self):
-        # draw namettttttttttttttttttttttttttttttttttf 
+        # draw namettttttttttttttttttttttttttttttttttf
         font = pg.font.SysFont(None, 20)
         player_name = font.render(self.game.network.player_name, True, RED)
         self.image.blit(player_name, (10, 0) )
@@ -65,48 +65,53 @@ class Player(pg.sprite.Sprite):
     def get_keys(self):
         self.rot_speed = 0
         self.vel = vec(0, 0)
+        keys = pg.key.get_pressed()
+        # if keys[pg.K_LEFT] or keys[pg.K_a]:
+            # self.rot_speed = PLAYER_ROT_SPEED
+            # self.game.network.add_key_to_data('L')
+
+        # if keys[pg.K_RIGHT] or keys[pg.K_d]:
+            # self.rot_speed = -PLAYER_ROT_SPEED
+            # self.game.network.add_key_to_data('R')
+
+        # if keys[pg.K_UP] or keys[pg.K_w]:
+            # self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
+            # self.game.network.add_key_to_data('U')
+        # if keys[pg.K_DOWN] or keys[pg.K_s]:
+            # self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
+            # self.game.network.add_key_to_data('D')
+
+        # if keys[pg.K_SPACE]:
+            # self.shoot()
+            # self.game.network.add_key_to_data('S')
+
         now = pg.time.get_ticks()
         if now - self.last_move > self.game.dt:
             keys = pg.key.get_pressed()
             if keys[pg.K_LEFT] or keys[pg.K_a]:
                 self.key_pressed = True
                 self.rot_speed = PLAYER_ROT_SPEED
-                if not self.game.network.is_master :
-                    self.game.network.run_peer('L')
-                else:
-                    self.game.network.run_master('L')
+                self.game.network.add_key_to_data('L')
 
             if keys[pg.K_RIGHT] or keys[pg.K_d]:
                 self.key_pressed = True
                 self.rot_speed = -PLAYER_ROT_SPEED
-                if not self.game.network.is_master :
-                    self.game.network.run_peer('R')
-                else:
-                    self.game.network.run_master('R')
+                self.game.network.add_key_to_data('R')
 
             if keys[pg.K_UP] or keys[pg.K_w]:
                 self.key_pressed = True
                 self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
-                if not self.game.network.is_master :
-                    self.game.network.run_peer('U')
-                else:
-                    self.game.network.run_master('U')
+                self.game.network.add_key_to_data('U')
 
             if keys[pg.K_DOWN] or keys[pg.K_s]:
                 self.key_pressed = True
                 self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
-                if not self.game.network.is_master :
-                    self.game.network.run_peer('D')
-                else:
-                    self.game.network.run_master('D')
+                self.game.network.add_key_to_data('D')
 
             if keys[pg.K_SPACE]:
                 self.key_pressed = True
                 self.shoot()
-                if not self.game.network.is_master :
-                    self.game.network.run_peer('S')
-                else:
-                    self.game.network.run_master('S')
+                self.game.network.add_key_to_data('S')
 
     def shoot(self):
         now = pg.time.get_ticks()
@@ -152,7 +157,7 @@ class Player(pg.sprite.Sprite):
         else:
             self.game.network.master_get_data()
 
-        self.get_keys() 
+        self.get_keys()
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
         if self.damaged:
@@ -200,7 +205,7 @@ class OtherPlayer(pg.sprite.Sprite):
         print(f"Position initial: {self.pos}")
 
     def draw_name(self):
-        # draw name 
+        # draw name
         font = pg.font.SysFont(None, 20)
         player_name = font.render(self.player_name, True, WHITE)
         # self.image.blit(name, (10, 0) )
@@ -243,15 +248,15 @@ class OtherPlayer(pg.sprite.Sprite):
         print("Update key" + key)
         self.rot_speed=0
         self.vel = vec(0, 0)
-        if key == 'L': 
+        if key == 'L':
             self.rot_speed = PLAYER_ROT_SPEED
-        if key == 'R': 
+        if key == 'R':
             self.rot_speed = -PLAYER_ROT_SPEED
-        if key == 'U': 
+        if key == 'U':
             self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
-        if key == 'D': 
+        if key == 'D':
             self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
-        if key == 'S': 
+        if key == 'S':
             self.shoot()
         self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
@@ -315,7 +320,7 @@ class Mob(pg.sprite.Sprite):
         self.health = MOB_HEALTH
         self.speed = choice(MOB_SPEEDS)
         self.target = self.game.player
-        
+
     def avoid_mobs(self):
         for mob in self.game.mobs:
             if mob != self:
@@ -333,8 +338,8 @@ class Mob(pg.sprite.Sprite):
             target_dist.append(i)
             target_dist[i] = (self.game.other_player_list[temp[i]].pos -self.pos)
             target_length.append(i)
-            target_length[i] = target_dist[i].length_squared()           
-        
+            target_length[i] = target_dist[i].length_squared()
+
         target_dist.append(self.target.pos - self.pos)
         target_length.append((self.target.pos - self.pos).length_squared())
 
@@ -344,7 +349,7 @@ class Mob(pg.sprite.Sprite):
             if target_length[i] < min_target:
                 min_target = target_length[i]
                 k =i
-       
+
         if min_target < DETECT_RADIUS**2:
             if random() < 0.002:
                 # choice(self.game.zombie_moan_sounds).play()
