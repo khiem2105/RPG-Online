@@ -187,7 +187,7 @@ class Game:
             self.events()
             if not self.paused:
                 self.update()
-            # Extend map to map illimited 
+            # Extend map to map unlimited 
             self.extend_map()
             self.draw()
             # print(f"player name {self.player.player_name} other player {self.other_player_list}")
