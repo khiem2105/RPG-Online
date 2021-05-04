@@ -11,6 +11,7 @@ from sprites import *
 from tilemap import *
 from network import *
 from menu import *
+from chat_box import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -44,6 +45,7 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
+        self.chat_box = ChatBox(self)
         
         
         
@@ -219,6 +221,8 @@ class Game:
                 mob.health -= bullet.damage
             mob.vel = vec(0, 0)
 
+        self.chat_box.update()
+
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
             pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
@@ -267,22 +271,25 @@ class Game:
         if self.paused:
             self.screen.blit(self.dim_screen, (0, 0))
             self.draw_text("Paused", self.title_font, 105, RED, WIDTH / 2, HEIGHT / 2, align="center")
+        self.chat_box.draw()
         pg.display.flip()
 
     def events(self):
         # catch all events here
         for event in pg.event.get():
+            chatting = self.chat_box.handle_event(event)
             if event.type == pg.QUIT:
                 self.quit()
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
-                    self.quit()
-                if event.key == pg.K_h:
-                    self.draw_debug = not self.draw_debug
-                if event.key == pg.K_p:
-                    self.paused = not self.paused
-                if event.key == pg.K_n:
-                    self.night = not self.night
+            if chatting == False:
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE:
+                        self.quit()
+                    if event.key == pg.K_h:
+                        self.draw_debug = not self.draw_debug
+                    if event.key == pg.K_p:
+                        self.paused = not self.paused
+                    if event.key == pg.K_n:
+                        self.night = not self.night
             if self.menu_is_running:
                 self.menu.check_input(event)
 
