@@ -13,7 +13,7 @@ from sprites import OtherPlayer
 
 class Network:
     def __init__(self, game):
-        self.DEBUG = True
+        self.DEBUG = False
         self.game = game
         self.player_name = input("Your name :")
         self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 
@@ -25,7 +25,7 @@ class Network:
 
     def add_new_player(self, new_id, connected_before_me=False):
         print("[Python] Welcome player id %i!" %(new_id))
-        new_player = OtherPlayer(self.game, 352, 224, player_name=str(new_id))
+        new_player = OtherPlayer(self.game, 128, 128, player_name=str(new_id))
         new_player.id = new_id
         self.list_peer_connected_before_me[new_id] = connected_before_me
         self.game.other_player_list[new_id] = new_player
@@ -38,8 +38,8 @@ class Network:
         Cnetwork.listen_and_accept()
         Cnetwork.master_peer_start_loop()
 
-    def add_key_to_data(self, key):
-        self.data_frame  += (" ").join(["Pos", key]) + ";"
+    def add_pos_to_data(self, x, y, rot):
+        self.data_frame  += (" ").join(["Pos", str(x), str(y), str(rot)]) + ";"
         
     def run_master(self):
         # Send data of master to all peers
@@ -123,9 +123,10 @@ class Network:
                     if id_player == -1: print("data_master:", data)
                 # update position
                 if data[0] == "Pos":
-                    key = data[1]
-                    if self.DEBUG: print("[Python] received from player ", id_player, " :", key)
-                    self.game.other_player_list[id_player].updateKey(key)
+                    pos = float(data[1]), float(data[2])
+                    rot = float(data[3])
+                    if self.DEBUG: print("[Python] received from player ", id_player, " :", pos, rot)
+                    self.game.other_player_list[id_player].updatePosRot(pos, rot)
                 elif data[0] == "Name": # update name
                     self.game.other_player_list[id_player].player_name = data[1]
 

@@ -4,14 +4,18 @@
 # Video link: https://youtu.be/IWm5hi5Yrvk
 import pygame as pg
 import sys
-from random import choice, random
+from random import choice, random, randint
 from os import path
 from settings import *
 from sprites import *
 from tilemap import *
 from network import *
 from menu import *
+<<<<<<< HEAD
 from chat_box import *
+=======
+# from inventory import *
+>>>>>>> db0ac7eaa46fe75910fc0667c0f762e660f035e5
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -92,6 +96,51 @@ class Game:
         self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
         
+    def extend_map(self):
+        # print(self.player.pos)
+        # print(self.map.width, self.map.height)
+        # print(self.camera.camera)
+        # print(self.camera.width, self.camera.height)
+        
+        N = 15
+        EXTEND_SIZE = TILESIZE * N
+        if self.player.pos[0] > self.map.width - WIDTH:
+            # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
+            self.map.width += EXTEND_SIZE
+            self.camera.width += EXTEND_SIZE
+            self.camera.camera.width += EXTEND_SIZE
+            for ext_col in range(15):
+                for row in range(self.map.tileheight):
+                    if row == 0:
+                        # Default the first tile is Wall
+                        Wall(self, self.map.tilewidth + ext_col, row)
+                    else:
+                        # 0 -> nothing, 1 -> wall ; prob = 33% Wall
+                        if randint(0, 2) % 2:
+                            Wall(self, self.map.tilewidth + ext_col, row)
+
+            self.map.tilewidth += N
+            print("Extended map to the size: ", self.map.width, "x", self.map.height)
+        if self.player.pos[1] > self.map.height - HEIGHT:
+            # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
+            self.map.height += EXTEND_SIZE
+            self.camera.height += EXTEND_SIZE
+            self.camera.camera.height   += EXTEND_SIZE
+            for ext_row in range(15):
+                for col in range(self.map.tilewidth):
+                    if col == 0:
+                        # Default the first tile is Wall
+                        Wall(self, col,self.map.tileheight + ext_row)
+                    else:
+                        # 0 -> nothing, 1 -> wall ; prob = 33% Wall
+                        if randint(0, 2) % 2:
+                            Wall(self, col,self.map.tileheight + ext_row)
+
+            self.map.tileheight += N
+            print("Extended map to the size: ", self.map.width, "x", self.map.height)
+
+
+
 
     def new(self):
         # initialize all variables and do all the setup for a new game
@@ -122,17 +171,19 @@ class Game:
                 if tile == '1':
                     Wall(self, col, row)
                 if tile == 'M':
-                    Mob(self, col*TILESIZE, row*TILESIZE)
+                    Mob(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'P':
-                    self.player = Player(self, col*TILESIZE, row*TILESIZE)
+                    self.player = Player(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'H':
-                    Item(self, [col*TILESIZE,row*TILESIZE], 'health')
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
                 if tile == 'G':
-                    Item(self, [col*TILESIZE,row*TILESIZE], 'shotgun')
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'shotgun')
         self.camera = Camera(self.map.width, self.map.height)
+        # self.inventory = Inventory(self)
         self.draw_debug = False
         self.paused = False
         self.night = False
+        # self.inventory_is_activate= False
         # init menu
         self.menu=Menu(self)
         self.menu_is_running=True
@@ -147,15 +198,13 @@ class Game:
             self.events()
             if not self.paused:
                 self.update()
+            # Extend map to map unlimited 
+            self.extend_map()
             self.draw()
             # print(f"player name {self.player.player_name} other player {self.other_player_list}")
-            if self.network.is_master:
-                g.network.run_master()
-            else:
+            if not self.network.is_master:
                 if self.network.first_message:
                     self.network.receive_first_message()
-                else:
-                    self.network.run_peer()
 
     def quit(self):
         pg.quit()
@@ -166,8 +215,8 @@ class Game:
         self.all_sprites.update()
         self.camera.update(self.player)
         # game over?
-        if len(self.mobs) == 0:
-            self.playing = False
+        # if len(self.mobs) == 0:
+        #     self.playing = False
         # player hits items
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
@@ -252,7 +301,6 @@ class Game:
         if self.draw_debug:
             for wall in self.walls:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
-
         # pg.draw.rect(self.screen, WHITE, self.player.hit_rect, 2)
         if self.night:
             self.render_fog()
@@ -282,6 +330,18 @@ class Game:
                         self.paused = not self.paused
                     if event.key == pg.K_n:
                         self.night = not self.night
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
+                    self.quit()
+                if event.key == pg.K_h:
+                    self.draw_debug = not self.draw_debug
+                if event.key == pg.K_p:
+                    self.paused = not self.paused
+                if event.key == pg.K_n:
+                    self.night = not self.night
+                # if event.key ==pg.K_i:
+                #     self.inventory_is_activate = not self.inventory_is_activate
+                #     print("key",)
             if self.menu_is_running:
                 self.menu.check_input(event)
 
