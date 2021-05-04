@@ -154,11 +154,13 @@ class Game:
                 self.update()
             self.draw()
             # print(f"player name {self.player.player_name} other player {self.other_player_list}")
-            if not self.network.is_master:
+            if self.network.is_master:
+                g.network.run_master()
+            else:
                 if self.network.first_message:
                     self.network.receive_first_message()
-                # else:
-                #     self.network.run_peer()
+                else:
+                    self.network.run_peer()
 
     def quit(self):
         pg.quit()

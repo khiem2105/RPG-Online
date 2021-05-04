@@ -13,7 +13,7 @@ from sprites import OtherPlayer
 
 class Network:
     def __init__(self, game):
-        self.DEBUG = False
+        self.DEBUG = True
         self.game = game
         self.player_name = input("Your name :")
         self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 
@@ -21,6 +21,7 @@ class Network:
         print("[Python] Thread Python is running!")
         self.first_message = True
         self.list_peer_connected_before_me = {} # {id : True/False}
+        self.data_frame = ""
 
     def add_new_player(self, new_id, connected_before_me=False):
         print("[Python] Welcome player id %i!" %(new_id))
@@ -37,18 +38,22 @@ class Network:
         Cnetwork.listen_and_accept()
         Cnetwork.master_peer_start_loop()
 
-    def run_master(self, key):
+    def add_key_to_data(self, key):
+        self.data_frame  += (" ").join(["Pos", key]) + ";"
+        
+    def run_master(self):
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
-        # Reieive data of peers
-        # init message
-        message =  ""
-        # add position
-        message += (" ").join(["Pos", key]) + ";"
+        # Check if data_frame = NULL => return (not send)
+        if self.data_frame == "":
+            return
         # add name
+        message = self.data_frame
         message += (" ").join(["Name", self.player_name]) + ";"
         Cnetwork.master_send_all(message)
         if self.DEBUG: print("Master sent to all:" + message)
+        # reset message
+        self.data_frame = ""
 	
     #  MASTER Get data from other peers
     def master_get_data(self):
@@ -91,16 +96,18 @@ class Network:
         Cnetwork.peer_connect_to_master(port, ip)
         self.add_new_player(-1, True)
     
-    def run_peer(self,key):
+    def run_peer(self):
+        # Check if data_frame = NULL => return (not send)
+        if self.data_frame == "":
+            return
         # Send data
-        # init message
-        message =  ""
-        # add position
-        message += (" ").join(["Pos", key]) + ";"
+        message = self.data_frame
         # add name
         message += (" ").join(["Name", self.player_name]) + ";"
         Cnetwork.peer_send_all(message)
         if self.DEBUG: print("Peer sent to all : " , message)
+        # reset message
+        self.data_frame = ""
         
     def analyse_data_received(self, data_received, id_player):
         if data_received != None and data_received != "":
