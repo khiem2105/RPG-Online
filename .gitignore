@@ -3,3 +3,5 @@ build/
 *.un~
 *.pyc
 *un~*
+__pycache__/
+InterfacePackage/__pycache__/
