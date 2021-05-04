@@ -48,7 +48,6 @@ class Game:
         self.chat_box = ChatBox(self)
         
         
-        
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
