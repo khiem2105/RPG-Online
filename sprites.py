@@ -36,7 +36,7 @@ class Player(pg.sprite.Sprite):
         self.game = game
         self.image = game.player_img
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        # self.rect.center = (x, y)
         self.hit_rect = PLAYER_HIT_RECT
         self.hit_rect.center = self.rect.center
         self.vel = vec(0, 0)
@@ -237,6 +237,7 @@ class OtherPlayer(pg.sprite.Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
+        print(self.rect,self.pos)
 
     def update(self):
         # self.get_keys()
@@ -257,6 +258,7 @@ class OtherPlayer(pg.sprite.Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
+        
 
     def add_health(self, amount):
         self.health += amount
@@ -272,7 +274,7 @@ class Mob(pg.sprite.Sprite):
         self.game = game
         self.image = game.mob_img.copy()
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        # self.rect.center = (x, y)
         self.hit_rect = MOB_HIT_RECT.copy()
         self.hit_rect.center = self.rect.center
         self.pos = vec(x, y)
@@ -360,17 +362,29 @@ class Bullet(pg.sprite.Sprite):
         if pg.time.get_ticks() - self.spawn_time > WEAPONS[self.game.player.weapon]['bullet_lifetime']:
             self.kill()
 
-class Obstacle(pg.sprite.Sprite):
-    def __init__(self, game, x, y, w, h):
-        self.groups = game.walls
+# class Obstacle(pg.sprite.Sprite):
+#     def __init__(self, game, x, y, w, h):
+#         self.groups = game.walls
+#         pg.sprite.Sprite.__init__(self, self.groups)
+#         self.game = game
+#         self.rect = pg.Rect(x, y, w, h)
+#         self.hit_rect = self.rect
+#         self.x = x
+#         self.y = y
+#         self.rect.x = x
+#         self.rect.y = y
+
+class Wall(pg.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.groups = game.all_sprites, game.walls
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
-        self.rect = pg.Rect(x, y, w, h)
-        self.hit_rect = self.rect
+        self.image = game.wall_img
+        self.rect = self.image.get_rect()
         self.x = x
         self.y = y
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.x = x * TILESIZE
+        self.rect.y = y * TILESIZE
 
 class MuzzleFlash(pg.sprite.Sprite):
     def __init__(self, game, pos):

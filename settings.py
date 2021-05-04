@@ -9,6 +9,9 @@ ENCHANT_FONT = path.join(fonts_folder, "enchanted_land.otf")
 ALEGREYA = path.join(fonts_folder, "alegreya.ttf")
 ALEGREYA_ITALIC = path.join(fonts_folder, "alegreya_italic.ttf")
 
+# Image
+WALL_IMG = 'tileGreen_39.png'
+
 # define some colors (R, G, B)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
