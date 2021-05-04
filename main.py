@@ -120,7 +120,8 @@ class Game:
                 if tile == '1':
                     Wall(self, col, row)
                 if tile == 'M':
-                    Mob(self, col*TILESIZE, row*TILESIZE)
+                    # Mob(self, col*TILESIZE, row*TILESIZE)
+                    pass
                 if tile == 'P':
                     self.player = Player(self, col*TILESIZE, row*TILESIZE)
                 if tile == 'H':
@@ -147,13 +148,9 @@ class Game:
                 self.update()
             self.draw()
             # print(f"player name {self.player.player_name} other player {self.other_player_list}")
-            if self.network.is_master:
-                g.network.run_master()
-            else:
+            if not self.network.is_master:
                 if self.network.first_message:
                     self.network.receive_first_message()
-                else:
-                    self.network.run_peer()
 
     def quit(self):
         pg.quit()
@@ -164,8 +161,8 @@ class Game:
         self.all_sprites.update()
         self.camera.update(self.player)
         # game over?
-        if len(self.mobs) == 0:
-            self.playing = False
+        # if len(self.mobs) == 0:
+        #     self.playing = False
         # player hits items
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
