@@ -11,6 +11,7 @@ from sprites import *
 from tilemap import *
 from network import *
 from menu import *
+# from inventory import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -128,9 +129,11 @@ class Game:
                 if tile == 'G':
                     Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'shotgun')
         self.camera = Camera(self.map.width, self.map.height)
+        # self.inventory = Inventory(self)
         self.draw_debug = False
         self.paused = False
         self.night = False
+        # self.inventory_is_activate= False
         # init menu
         self.menu=Menu(self)
         self.menu_is_running=True
@@ -268,6 +271,9 @@ class Game:
                     self.paused = not self.paused
                 if event.key == pg.K_n:
                     self.night = not self.night
+                # if event.key ==pg.K_i:
+                #     self.inventory_is_activate = not self.inventory_is_activate
+                #     print("key",)
             if self.menu_is_running:
                 self.menu.check_input(event)
 
