@@ -65,38 +65,22 @@ class Player(pg.sprite.Sprite):
         keys = pg.key.get_pressed()
         if keys[pg.K_LEFT] or keys[pg.K_a]:
             self.rot_speed = PLAYER_ROT_SPEED
-            if not self.game.network.is_master :
-                self.game.network.run_peer('L')
-            else:
-                self.game.network.run_master('L')
+            self.game.network.add_key_to_data('L')
 
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
             self.rot_speed = -PLAYER_ROT_SPEED
-            if not self.game.network.is_master :
-                self.game.network.run_peer('R')
-            else:
-                self.game.network.run_master('R')
+            self.game.network.add_key_to_data('R')
 
         if keys[pg.K_UP] or keys[pg.K_w]:
             self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
-            if not self.game.network.is_master :
-                self.game.network.run_peer('U')
-            else:
-                self.game.network.run_master('U')
-
+            self.game.network.add_key_to_data('U')
         if keys[pg.K_DOWN] or keys[pg.K_s]:
             self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
-            if not self.game.network.is_master :
-                self.game.network.run_peer('D')
-            else:
-                self.game.network.run_master('D')
+            self.game.network.add_key_to_data('D')
 
         if keys[pg.K_SPACE]:
             self.shoot()
-            if not self.game.network.is_master :
-                self.game.network.run_peer('S')
-            else:
-                self.game.network.run_master('S')
+            self.game.network.add_key_to_data('S')
 
     def shoot(self):
         now = pg.time.get_ticks()
