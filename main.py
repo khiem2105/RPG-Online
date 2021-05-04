@@ -11,6 +11,7 @@ from sprites import *
 from tilemap import *
 from network import *
 from menu import *
+# from inventory import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -44,9 +45,6 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
-        
-        
-        
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
@@ -120,18 +118,19 @@ class Game:
                 if tile == '1':
                     Wall(self, col, row)
                 if tile == 'M':
-                    # Mob(self, col*TILESIZE, row*TILESIZE)
-                    pass
+                    Mob(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'P':
-                    self.player = Player(self, col*TILESIZE, row*TILESIZE)
+                    self.player = Player(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'H':
-                    Item(self, [col*TILESIZE,row*TILESIZE], 'health')
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
                 if tile == 'G':
-                    Item(self, [col*TILESIZE,row*TILESIZE], 'shotgun')
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'shotgun')
         self.camera = Camera(self.map.width, self.map.height)
+        # self.inventory = Inventory(self)
         self.draw_debug = False
         self.paused = False
         self.night = False
+        # self.inventory_is_activate= False
         # init menu
         self.menu=Menu(self)
         self.menu_is_running=True
@@ -239,7 +238,6 @@ class Game:
         if self.draw_debug:
             for wall in self.walls:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
-
         # pg.draw.rect(self.screen, WHITE, self.player.hit_rect, 2)
         if self.night:
             self.render_fog()
@@ -266,6 +264,9 @@ class Game:
                     self.paused = not self.paused
                 if event.key == pg.K_n:
                     self.night = not self.night
+                # if event.key ==pg.K_i:
+                #     self.inventory_is_activate = not self.inventory_is_activate
+                #     print("key",)
             if self.menu_is_running:
                 self.menu.check_input(event)
 

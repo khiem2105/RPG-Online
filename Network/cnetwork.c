@@ -23,7 +23,7 @@
 #define false 0
 #define true 1
 #define MAX_CONNECTION 5
-#define DEBUG 0
+#define DEBUG 1
 typedef int bool;
 // ------------------------------------------------------------
 // ------------------- Delaration variable ---------------------
@@ -423,6 +423,7 @@ void Cincomming_message(void) {
 		// Send message to all others Peers to inform
 		sprintf(global_buf, "Disconnected;%i;", i);
 		Cmaster_send_message_to_all_others_peer();	
+		sprintf(master_buffer, "Disconnected;%i;", i);
 	    }
 	    // Print the messgage received
 	    else {

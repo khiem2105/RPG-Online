@@ -31,7 +31,7 @@ class Network:
         self.game.other_player_list[new_id] = new_player
         print("[Python] Created new instance of OtherPlayer() ")
         print("[Python] List of players : ", self.game.other_player_list)
-	
+
     def init_master(self):
         print("[Python] your are the master peer! with port "+str(self.game.port))
         Cnetwork.create_and_bind(self.game.port)
@@ -68,6 +68,11 @@ class Network:
                 if data[0] == "New":
                     new_id = int(data[1])
                     self.add_new_player(new_id)
+                elif data[0] == "Disconnected":
+                    id_player = int(data[1])
+                    if self.DEBUG : print("Player", id_player, "disconnected! Deleted from the list...")
+                    self.game.other_player_list[id_player].kill()
+                    self.game.other_player_list.pop(id_player, None)
         except Exception as E:
             print(str(E))
 
@@ -164,6 +169,12 @@ class Network:
                 if data[0] == "New":
                     new_id = int(data[1])
                     self.add_new_player(new_id)
+                elif data[0] == "Disconnected":
+                    id_player = int(data[1])
+                    if self.DEBUG : print("Player", id_player, "disconnected! Deleted from the list...")
+                    self.game.other_player_list[id_player].kill()
+                    # self.game.other_player_list.pop(int(data[1]), None)
+                    self.game.other_player_list.pop(id_player, None)
                 # if data[0] == "Disconnected":
                     # player_id = int(data[1])
         except Exception as E:
