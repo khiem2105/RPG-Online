@@ -41,6 +41,12 @@ class Network:
     def add_pos_to_data(self, x, y, rot):
         self.data_frame  += (" ").join(["Pos", str(x), str(y), str(rot)]) + ";"
         
+    def sync_resize_map(self, direction, data):
+        # Sync unlimited map
+        # Package : Extend_map <Direction:Right/Bottom> <Row> <Col> <X*Y numbers: Wall or Not>
+        self.data_frame += (" ").join(["Extend_map", direction, str(len(data[0])), str(len(data))] + [str(i) for line in data for i in line]) + ';'
+        if self.DEBUG : print(self.data_frame)
+        
     def run_master(self):
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
@@ -129,6 +135,20 @@ class Network:
                     self.game.other_player_list[id_player].updatePosRot(pos, rot)
                 elif data[0] == "Name": # update name
                     self.game.other_player_list[id_player].player_name = data[1]
+                elif data[0] == "Extend_map": # update name
+                    # Package : Extend_map <Direction:Right/Bottom> <Row> <Col> <X*Y numbers: Wall or Not>
+                    i = 4
+                    cols = int(data[2])
+                    rows = int(data[3])
+                    extend_data = []
+                    for row in range(rows):
+                        line = []
+                        for col in range(cols):
+                            line.append(int(data[i]))
+                            i += 1
+                        extend_data.append(line)
+                    if self.DEBUG: print(extend_data)
+                    self.game.peer_extend_map(data[1], 15, extend_data)
 
     #  PEER Get data from other peers
     def peer_get_data(self):

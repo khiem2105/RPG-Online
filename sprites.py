@@ -17,7 +17,7 @@ def collide_with_walls(sprite, group, dir):
                 sprite.pos.x = hits[0].rect.right + sprite.hit_rect.width / 2
             sprite.vel.x = 0
             sprite.hit_rect.centerx = sprite.pos.x
-            print("collide x")
+            # print("collide x")
     if dir == 'y':
         hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect)
         if hits:
@@ -27,7 +27,7 @@ def collide_with_walls(sprite, group, dir):
                 sprite.pos.y = hits[0].rect.bottom + sprite.hit_rect.height / 2
             sprite.vel.y = 0
             sprite.hit_rect.centery = sprite.pos.y
-            print("collide y")
+            # print("collide y")
 
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):

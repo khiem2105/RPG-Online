@@ -45,6 +45,8 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
+        # Option unlimited map, re-do later
+        self.do_unlimited_map = True
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
@@ -88,51 +90,93 @@ class Game:
         self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
         
-    def extend_map(self):
-        # print(self.player.pos)
-        # print(self.map.width, self.map.height)
-        # print(self.camera.camera)
-        # print(self.camera.width, self.camera.height)
-        
+    def master_extend_map(self):
         N = 15
         EXTEND_SIZE = TILESIZE * N
+        data_for_sync = []
         if self.player.pos[0] > self.map.width - WIDTH:
             # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
             self.map.width += EXTEND_SIZE
             self.camera.width += EXTEND_SIZE
             self.camera.camera.width += EXTEND_SIZE
             for ext_col in range(15):
+                line = []
                 for row in range(self.map.tileheight):
                     if row == 0:
                         # Default the first tile is Wall
                         Wall(self, self.map.tilewidth + ext_col, row)
+                        line.append(1)
+                        continue
                     else:
                         # 0 -> nothing, 1 -> wall ; prob = 33% Wall
                         if randint(0, 2) % 2:
                             Wall(self, self.map.tilewidth + ext_col, row)
-
+                            line.append(1)
+                            continue
+                    line.append(0)
+                data_for_sync.append(line)
             self.map.tilewidth += N
-            print("Extended map to the size: ", self.map.width, "x", self.map.height)
+            print("Extended map to the right: ", self.map.width, "x", self.map.height)
+            self.network.sync_resize_map("Right", data_for_sync)
+
+        data_for_sync = []
         if self.player.pos[1] > self.map.height - HEIGHT:
             # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
             self.map.height += EXTEND_SIZE
             self.camera.height += EXTEND_SIZE
-            self.camera.camera.height   += EXTEND_SIZE
+            self.camera.camera.height += EXTEND_SIZE
             for ext_row in range(15):
+                line = []
                 for col in range(self.map.tilewidth):
                     if col == 0:
                         # Default the first tile is Wall
                         Wall(self, col,self.map.tileheight + ext_row)
+                        line.append(1)
+                        continue
                     else:
                         # 0 -> nothing, 1 -> wall ; prob = 33% Wall
                         if randint(0, 2) % 2:
                             Wall(self, col,self.map.tileheight + ext_row)
-
+                            line.append(1)
+                            continue
+                    line.append(0)
+                data_for_sync.append(line)
             self.map.tileheight += N
-            print("Extended map to the size: ", self.map.width, "x", self.map.height)
+            print("Extended map to the bottom: ", self.map.width, "x", self.map.height)
+            self.network.sync_resize_map("Bottom", data_for_sync)
+            print(data_for_sync)
 
+    def peer_extend_map(self, direction, N, data):
+        EXTEND_SIZE = TILESIZE * N
+        if direction == "Right":
+            # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
+            self.map.width += EXTEND_SIZE
+            self.camera.width += EXTEND_SIZE
+            self.camera.camera.width += EXTEND_SIZE
+            i = 0
+            for ext_col in range(15):
+                for row in range(self.map.tileheight):
+                    if data[ext_col][row] == 1:
+                        Wall(self, self.map.tilewidth + ext_col, row)
+            self.map.tilewidth += N
+            print("Peer fetched extended map from master: ", self.map.width, "x", self.map.height)
 
-
+        if direction == "Bottom":
+            print(len(data[0]), len(data))
+            print(self.map.tilewidth)
+            for line in data:
+                print(line)
+            # Extend to the right part of the map EXTEND_SIZE N tiles with EXTEND_SIZE = N * TILESIZE
+            self.map.height += EXTEND_SIZE
+            self.camera.height += EXTEND_SIZE
+            self.camera.camera.height   += EXTEND_SIZE
+            i = 0
+            for ext_row in range(15):
+                for col in range(self.map.tilewidth):
+                    if data[ext_row][col] == 1:
+                        Wall(self, col ,self.map.tileheight + ext_row)
+            self.map.tileheight += N
+            print("Peer fetched extended map from master: ", self.map.width, "x", self.map.height)
 
     def new(self):
         # initialize all variables and do all the setup for a new game
@@ -191,7 +235,9 @@ class Game:
             if not self.paused:
                 self.update()
             # Extend map to map unlimited 
-            self.extend_map()
+            if self.network.is_master:
+                if self.do_unlimited_map:
+                    self.master_extend_map()
             self.draw()
             # print(f"player name {self.player.player_name} other player {self.other_player_list}")
             if not self.network.is_master:
