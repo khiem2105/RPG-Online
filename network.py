@@ -33,13 +33,19 @@ class Network:
         print("[Python] List of players : ", self.game.other_player_list)
 
     def init_master(self):
-        print("[Python] your are the master peer! with port "+str(self.game.port))
+        print("[Python] you are the master peer! with port "+str(self.game.port))
         Cnetwork.create_and_bind(self.game.port)
         Cnetwork.listen_and_accept()
         Cnetwork.master_peer_start_loop()
 
     def add_pos_to_data(self, x, y, rot):
-        self.data_frame  += (" ").join(["Pos", str(x), str(y), str(rot)]) + ";"
+        self.data_frame  += (" ").join(["Pos:", str(x), str(y), str(rot)]) + ";"
+
+    def add_action_to_data(self, action="S"):
+        self.data_frame += (" ").join(["Action:", action]) + ";"
+    
+    def add_message_to_data(self, mess):  #For chatting
+        self.data_frame += (" ").join(["Chat:", mess]) + ";"
         
     def sync_resize_map(self, direction, data):
         # Sync unlimited map
@@ -55,7 +61,7 @@ class Network:
             return
         # add name
         message = self.data_frame
-        message += (" ").join(["Name", self.player_name]) + ";"
+        message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.master_send_all(message)
         if self.DEBUG: print("Master sent to all:" + message)
         # reset message
@@ -99,7 +105,7 @@ class Network:
             print(str(E))
 
     def init_peer(self):
-        print("[Python] your are the normal peer! with port "+str(self.game.port))
+        print("[Python] you are the normal peer! with port "+str(self.game.port))
         ip = "127.0.0.1"
         port = self.game.port
         # port = 2510
@@ -114,7 +120,7 @@ class Network:
         # Send data
         message = self.data_frame
         # add name
-        message += (" ").join(["Name", self.player_name]) + ";"
+        message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.peer_send_all(message)
         if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
@@ -128,12 +134,19 @@ class Network:
                 if self.DEBUG: 
                     if id_player == -1: print("data_master:", data)
                 # update position
-                if data[0] == "Pos":
+                if data[0] == "Pos:":
                     pos = float(data[1]), float(data[2])
                     rot = float(data[3])
                     if self.DEBUG: print("[Python] received from player ", id_player, " :", pos, rot)
                     self.game.other_player_list[id_player].updatePosRot(pos, rot)
-                elif data[0] == "Name": # update name
+                elif data[0] == "Action:":
+                    action = data[1]
+                    if self.DEBUG: print("[Python] received from player ", id_player, " :", action)
+                    self.game.other_player_list[id_player].updateAction(action)
+                elif data[0] == "Chat:":
+                    mess = self.game.other_player_list[id_player].player_name + ": " + data[1]
+                    self.game.chat_box.write_log(mess)
+                elif data[0] == "Name:": # update name
                     self.game.other_player_list[id_player].player_name = data[1]
                 elif data[0] == "Extend_map": # update name
                     # Package : Extend_map <Direction:Right/Bottom> <Row> <Col> <X*Y numbers: Wall or Not>

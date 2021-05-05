@@ -4,14 +4,15 @@
 # Video link: https://youtu.be/IWm5hi5Yrvk
 import pygame as pg
 import sys
-from random import choice, random, randint
+from random import choice, random, randint, seed
 from os import path
 from settings import *
 from sprites import *
 from tilemap import *
 from network import *
 from menu import *
-# from inventory import *
+from inventory import *
+from chat_box import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -47,6 +48,10 @@ class Game:
         self.load_data()
         # Option unlimited map, re-do later
         self.do_unlimited_map = True
+        self.chat_box = ChatBox(self)
+        self.chatting = False
+
+
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
@@ -89,7 +94,7 @@ class Game:
         self.light_mask = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
         self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
-        
+
     def master_extend_map(self):
         N = 15
         EXTEND_SIZE = TILESIZE * N
@@ -213,13 +218,14 @@ class Game:
                 if tile == 'H':
                     Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
                 if tile == 'G':
-                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'shotgun')
+                    gun=choice(WEAPONS_NAME)
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
         self.camera = Camera(self.map.width, self.map.height)
-        # self.inventory = Inventory(self)
+        self.inventory = Inventory(self)
         self.draw_debug = False
         self.paused = False
         self.night = False
-        # self.inventory_is_activate= False
+        self.inventory_is_activate= False
         # init menu
         self.menu=Menu(self)
         self.menu_is_running=True
@@ -234,7 +240,7 @@ class Game:
             self.events()
             if not self.paused:
                 self.update()
-            # Extend map to map unlimited 
+            # Extend map to map unlimited
             if self.network.is_master:
                 if self.do_unlimited_map:
                     self.master_extend_map()
@@ -255,6 +261,7 @@ class Game:
         # game over?
         # if len(self.mobs) == 0:
         #     self.playing = False
+
         # player hits items
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
@@ -262,10 +269,14 @@ class Game:
                 hit.kill()
                 # self.effects_sounds['health_up'].play()
                 self.player.add_health(HEALTH_PACK_AMOUNT)
-            if hit.type == 'shotgun':
+            #pickup weapons
+            if hit.type in WEAPONS_NAME and self.player.number_of_items<14:
                 hit.kill()
                 # self.effects_sounds['gun_pickup'].play()
-                self.player.weapon = 'shotgun'
+                self.player.back_pack[self.player.number_of_items] = self.player.weapon
+                self.player.number_of_items +=1
+                self.player.weapon = hit.type
+
         # mobs hit player
         # hits_1 = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         # for hit in hits_1:
@@ -301,6 +312,14 @@ class Game:
                 mob.health -= bullet.damage
             mob.vel = vec(0, 0)
 
+        self.chat_box.update()
+
+    def draw_grid(self):
+        for x in range(0, WIDTH, TILESIZE):
+            pg.draw.line(self.screen, LIGHTGREY, (x, 0), (x, HEIGHT))
+        for y in range(0, HEIGHT, TILESIZE):
+            pg.draw.line(self.screen, LIGHTGREY, (0, y), (WIDTH, y))
+
     def render_fog(self):
         # draw the light mask (gradient) onto fog image
         self.fog.fill(NIGHT_COLOR)
@@ -317,7 +336,7 @@ class Game:
                 sprite.draw_health()
             self.screen.blit(sprite.image, self.camera.apply(sprite))
             # draw name Player
-            if isinstance(sprite, Player): 
+            if isinstance(sprite, Player):
                 font = pg.font.SysFont(None, 20)
                 player_name = font.render(sprite.player_name, True, RED)
                 self.screen.blit(player_name, self.camera.apply(sprite))
@@ -334,6 +353,8 @@ class Game:
         # pg.draw.rect(self.screen, WHITE, self.player.hit_rect, 2)
         if self.night:
             self.render_fog()
+        if self.inventory_is_activate:
+            self.inventory.display_inventory()
         # HUD functions
         draw_player_health(self.screen, 10, 10, self.player.health / PLAYER_HEALTH)
         self.draw_text('Zombies: {}'.format(len(self.mobs)), self.hud_font, 30, WHITE,
@@ -341,13 +362,25 @@ class Game:
         if self.paused:
             self.screen.blit(self.dim_screen, (0, 0))
             self.draw_text("Paused", self.title_font, 105, RED, WIDTH / 2, HEIGHT / 2, align="center")
+        self.chat_box.draw()
         pg.display.flip()
 
     def events(self):
         # catch all events here
         for event in pg.event.get():
+            self.chatting = self.chat_box.handle_event(event)
             if event.type == pg.QUIT:
                 self.quit()
+            if self.chatting:
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE:
+                        self.quit()
+                    if event.key == pg.K_h:
+                        self.draw_debug = not self.draw_debug
+                    if event.key == pg.K_p:
+                        self.paused = not self.paused
+                    if event.key == pg.K_n:
+                        self.night = not self.night
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     self.quit()
@@ -357,9 +390,8 @@ class Game:
                     self.paused = not self.paused
                 if event.key == pg.K_n:
                     self.night = not self.night
-                # if event.key ==pg.K_i:
-                #     self.inventory_is_activate = not self.inventory_is_activate
-                #     print("key",)
+                if event.key ==pg.K_i:
+                    self.inventory_is_activate = not self.inventory_is_activate
             if self.menu_is_running:
                 self.menu.check_input(event)
 
