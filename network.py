@@ -43,6 +43,9 @@ class Network:
 
     def add_action_to_data(self, action="S"):
         self.data_frame += (" ").join(["Action:", action]) + ";"
+    
+    def add_message_to_data(self, mess):  #For chatting
+        self.data_frame += (" ").join(["Chat:", mess]) + ";"
         
     def run_master(self):
         # Send data of master to all peers
@@ -134,6 +137,9 @@ class Network:
                     action = data[1]
                     if self.DEBUG: print("[Python] received from player ", id_player, " :", action)
                     self.game.other_player_list[id_player].updateAction(action)
+                elif data[0] == "Chat:":
+                    mess = self.game.other_player_list[id_player].player_name + ": " + data[1]
+                    self.game.chat_box.write_log(mess)
                 elif data[0] == "Name:": # update name
                     self.game.other_player_list[id_player].player_name = data[1]
 
