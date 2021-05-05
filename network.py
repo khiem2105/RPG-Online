@@ -138,7 +138,11 @@ class Network:
                     if self.DEBUG: print("[Python] received from player ", id_player, " :", action)
                     self.game.other_player_list[id_player].updateAction(action)
                 elif data[0] == "Chat:":
-                    mess = self.game.other_player_list[id_player].player_name + ": " + data[1]
+                    print(len(data))
+                    mess = self.game.other_player_list[id_player].player_name + ": "
+                    for i in range(1, len(data)):
+                        mess = mess + data[i] + " " 
+                    self.game.chat_box.is_text_reveived = True
                     self.game.chat_box.write_log(mess)
                 elif data[0] == "Name:": # update name
                     self.game.other_player_list[id_player].player_name = data[1]

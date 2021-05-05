@@ -320,7 +320,7 @@ class Game:
             self.chatting = self.chat_box.handle_event(event)
             if event.type == pg.QUIT:
                 self.quit()
-            if self.chatting:
+            if not self.chatting:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_ESCAPE:
                         self.quit()
@@ -330,17 +330,9 @@ class Game:
                         self.paused = not self.paused
                     if event.key == pg.K_n:
                         self.night = not self.night
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE:
-                    self.quit()
-                if event.key == pg.K_h:
-                    self.draw_debug = not self.draw_debug
-                if event.key == pg.K_p:
-                    self.paused = not self.paused
-                if event.key == pg.K_n:
-                    self.night = not self.night
-                if event.key ==pg.K_i:
-                    self.inventory_is_activate = not self.inventory_is_activate
+                    if event.key ==pg.K_i:
+                        self.inventory_is_activate = not self.inventory_is_activate
+                
             if self.menu_is_running:
                 self.menu.check_input(event)
 

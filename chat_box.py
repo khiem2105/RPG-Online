@@ -11,6 +11,7 @@ class ChatBox:
         self.rect.bottomleft = (0, self.game.screen.get_height())
         self.font = pygame.font.Font(None, 24)
         self.log = []
+        self.is_text_reveived = False
         # self.COLOR_INACTIVE = pygame.Color("lightskyblue3")
         # self.COLOR_ACTIVE = pygame.Color((255, 255, 255))
         # self.active = False
@@ -33,13 +34,16 @@ class ChatBox:
         return active
 
     def print_log(self):
-        x = 5
         y = self.y_start
         sp = max(0, len(self.log) - 8)
         offset = min(self.input_box.camera, sp)
         for i in range(offset, len(self.log)):
-            # type(text) == str
-            # print(self.log[i])
+            if self.is_text_reveived:
+                x =5
+            else:
+                x = self.game.screen.get_width()//4
+            #type(text) == str
+            #print(self.log[i])
             if (self.log[i] != ""):
                 if type(self.log[i]) == tuple:
                     if self.log[i][0] == "combat":
@@ -99,9 +103,11 @@ class InputBox:
             if self.active:
                 if event.key == K_RETURN:
                     self.chat_box.write_log(self.text)
-                    self.chat_box.game.network.add_message_to_data(self.text)
+                    if (self.text != ""):
+                        self.chat_box.game.network.add_message_to_data(self.text)
                     self.text = ''
                     self.camera = 0
+                    self.chat_box.is_text_reveived = False
                 elif event.key == K_BACKSPACE:
                     self.text = self.text[:-1]
                 else:

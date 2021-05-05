@@ -156,7 +156,7 @@ class Player(pg.sprite.Sprite):
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
         if self.key_pressed:
-            print(f"Position after updated: {self.pos}")
+            #print(f"Position after updated: {self.pos}")
             self.game.network.add_pos_to_data(self.pos[0], self.pos[1], self.rot)
             self.key_pressed = False
             if self.game.network.is_master:
