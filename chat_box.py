@@ -99,9 +99,7 @@ class InputBox:
             if self.active:
                 if event.key == K_RETURN:
                     self.chat_box.write_log(self.text)
-                    ### send to server
-                    #self.client.stack_msg.append("/ " + str(self.chat_box.game.my_player.id) + " : " + self.text)
-                    ###
+                    self.chat_box.game.network.add_message_to_data(self.text)
                     self.text = ''
                     self.camera = 0
                 elif event.key == K_BACKSPACE:
