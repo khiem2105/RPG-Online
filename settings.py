@@ -74,6 +74,7 @@ WEAPONS['uzi'] = {'bullet_speed': 700,
                       'bullet_size': 'sm',
                       'bullet_count': 1}
 
+
 # Mob settings
 MOB_IMG = 'zombie1_hold.png'
 MOB_SPEEDS = [150, 100, 75, 125]

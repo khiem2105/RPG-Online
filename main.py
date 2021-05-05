@@ -4,7 +4,7 @@
 # Video link: https://youtu.be/IWm5hi5Yrvk
 import pygame as pg
 import sys
-from random import choice, random, randint
+from random import choice, random, randint, seed
 from os import path
 from settings import *
 from sprites import *
@@ -215,6 +215,7 @@ class Game:
         # game over?
         # if len(self.mobs) == 0:
         #     self.playing = False
+
         # player hits items
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
@@ -222,10 +223,14 @@ class Game:
                 hit.kill()
                 # self.effects_sounds['health_up'].play()
                 self.player.add_health(HEALTH_PACK_AMOUNT)
-            if hit.type == 'shotgun':
+            #pickup weapons
+            if hit.type in WEAPONS_NAME and self.player.number_of_items<14: 
                 hit.kill()
                 # self.effects_sounds['gun_pickup'].play()
-                self.player.weapon = 'shotgun'
+                self.player.back_pack[self.player.number_of_items] = self.player.weapon
+                self.player.number_of_items +=1
+                self.player.weapon = hit.type
+
         # mobs hit player
         # hits_1 = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         # for hit in hits_1:

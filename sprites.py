@@ -51,7 +51,8 @@ class Player(pg.sprite.Sprite):
         self.last_move = 0
         self.key_pressed = False
         self.last_send = 0
-        print(self.pos)
+        self.back_pack=[None]*14
+        self.number_of_items=0
         # self.last_received_key = None
 
     def draw_name(self):
