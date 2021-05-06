@@ -52,6 +52,10 @@ class Game:
         self.chat_box = ChatBox(self)
         self.chatting = False
         self.nb_zombies = 0
+        # mouse click
+        self.is_right_click=False
+        self.is_left_click=False
+        self.mouse_pos_at_clicked =[0,0]
 
 
 
@@ -376,6 +380,7 @@ class Game:
         # catch all events here
         for event in pg.event.get():
             self.chatting = self.chat_box.handle_event(event)
+            
             if event.type == pg.QUIT:
                 self.quit()
             if not self.chatting:
@@ -390,7 +395,14 @@ class Game:
                         self.night = not self.night
                     if event.key ==pg.K_i:
                         self.inventory_is_activate = not self.inventory_is_activate
-                
+            if event.type==pg.MOUSEBUTTONDOWN and event.button==3:
+                self.is_right_click=True
+                self.mouse_pos_at_clicked=pg.mouse.get_pos()
+            if event.type==pg.MOUSEBUTTONDOWN and event.button==1:
+                self.is_left_click=True
+                self.mouse_pos_at_clicked=pg.mouse.get_pos()
+            if event.type==pg.MOUSEBUTTONUP:
+                self.is_right_click,self.is_left_click=False,False
             if self.menu_is_running:
                 self.menu.check_input(event)
 

@@ -325,7 +325,7 @@ class Mob(pg.sprite.Sprite):
             self.rect.center = self.pos
             self.acc = vec(1, 0).rotate(-self.rot)
             self.avoid_mobs()
-            if(self.acc.length_squared()>0):
+            if self.acc.length_squared() > 0:
                 self.acc.scale_to_length(self.speed)
             self.acc += self.vel * -1
             self.vel += self.acc * self.game.dt
