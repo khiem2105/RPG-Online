@@ -133,6 +133,18 @@ class Network:
         # reset message
         self.data_frame = ""
 
+    def peer_send_data_to_master(self):
+        if self.data_frame == "":
+            return
+        #Send data
+        message = self.data_frame
+        # add name
+        message += (" ").join(["Name:", self.player_name]) + ";"
+        Cnetwork.peer_send_data_to_master(message)
+        if self.DEBUG: print("Peer sent to all : " , message)
+        # reset message
+        self.data_frame = ""
+
     def analyse_zombie_data(self, zombie_data):
         id = 0
         pos = (0, 0)

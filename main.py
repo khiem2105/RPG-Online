@@ -51,6 +51,7 @@ class Game:
         self.do_unlimited_map = True
         self.chat_box = ChatBox(self)
         self.chatting = False
+        self.nb_zombies = 0
 
 
 

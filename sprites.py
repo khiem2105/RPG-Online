@@ -135,9 +135,11 @@ class Player(pg.sprite.Sprite):
     def updateZombie(self, id, pos, rot, hp):
         print("Updating...")
         if not self.game.list_mobs.list[id]:
-            mob = Mob(self.game, pos[0], pos[1])
+            mob = CloneMob(self.game, pos[0], pos[1])
             self.game.list_mobs.list[id] = mob
             self.game.list_mobs.data[id] = {"Pos": pos, "Rot": rot, "Hp": hp}
+        else:
+            self.game.list_mobs.list[id].update_according_to_master(pos, rot, hp)
 
     def update(self):
         # get data of others:
@@ -291,6 +293,102 @@ class Mob(pg.sprite.Sprite):
                 dist = self.pos - mob.pos
                 if 0 < dist.length() < AVOID_RADIUS:
                     self.acc += dist.normalize()
+
+    def update(self):
+        target_dist =[]
+        target_length =[]
+        target_dist_0 = (self.target.pos - self.pos)
+        temp = list(self.game.network.list_id())
+        l= len(temp)
+        for i in range(l):
+            target_dist.append(i)
+            target_dist[i] = (self.game.other_player_list[temp[i]].pos -self.pos)
+            target_length.append(i)
+            target_length[i] = target_dist[i].length_squared()
+
+        target_dist.append(self.target.pos - self.pos)
+        target_length.append((self.target.pos - self.pos).length_squared())
+
+        min_target = target_length[0]
+        k=0
+        for i in range(l+1):
+            if target_length[i] < min_target:
+                min_target = target_length[i]
+                k =i
+
+        if min_target < DETECT_RADIUS**2:
+            if random() < 0.002:
+                # choice(self.game.zombie_moan_sounds).play()
+                pass
+            self.rot = target_dist[k].angle_to(vec(1, 0))
+            self.image = pg.transform.rotate(self.game.mob_img, self.rot)
+            self.rect.center = self.pos
+            self.acc = vec(1, 0).rotate(-self.rot)
+            self.avoid_mobs()
+            if(self.acc.length_squared()>0):
+                self.acc.scale_to_length(self.speed)
+            self.acc += self.vel * -1
+            self.vel += self.acc * self.game.dt
+            temp=self.pos + self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
+            if temp.x<=self.game.map.width and temp.x>=0 and temp.y<=self.game.map.height and temp.y>=0:
+                self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
+            self.hit_rect.centerx = self.pos.x
+            collide_with_walls(self, self.game.walls, 'x')
+            self.hit_rect.centery = self.pos.y
+            collide_with_walls(self, self.game.walls, 'y')
+            self.rect.center = self.hit_rect.center
+        if self.health <= 0:
+            # choice(self.game.zombie_hit_sounds).play()
+            self.kill()
+            self.game.screen.blit(self.game.splat, self.pos - vec(32, 32))
+
+    def draw_health(self):
+        if self.health > 60:
+            col = GREEN
+        elif self.health > 30:
+            col = YELLOW
+        else:
+            col = RED
+        width = int(self.rect.width * self.health / MOB_HEALTH)
+        self.health_bar = pg.Rect(0, 0, width, 7)
+        if self.health < MOB_HEALTH:
+            pg.draw.rect(self.image, col, self.health_bar)
+
+class CloneMob(pg.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self._layer = MOB_LAYER
+        self.groups = game.all_sprites, game.mobs
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.game = game
+        self.image = game.mob_img.copy()
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.hit_rect = MOB_HIT_RECT.copy()
+        self.hit_rect.center = self.rect.center
+        self.pos = vec(x, y)
+        self.vel = vec(0, 0)
+        self.acc = vec(0, 0)
+        self.rect.center = self.pos
+        self.rot = 0
+        self.health = MOB_HEALTH
+        self.speed = choice(MOB_SPEEDS)
+        self.target = self.game.player
+        print(f"Created mob at position: {self.pos.x}, {self.pos.y}")
+
+    def avoid_mobs(self):
+        for mob in self.game.mobs:
+            if mob != self:
+                dist = self.pos - mob.pos
+                if 0 < dist.length() < AVOID_RADIUS:
+                    self.acc += dist.normalize()
+
+    def update_according_to_master(self, pos, rot, hp):
+        self.pos = pos
+        self.rot = rot
+        self.health = hp
+        self.image = pg.transform.rotate(self.game.mob_img, self.rot)
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
 
     def update(self):
         # target_dist =[]
