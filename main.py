@@ -48,7 +48,7 @@ class Game:
         self.clock = pg.time.Clock()
         self.load_data()
         # Option unlimited map, re-do later
-        self.do_unlimited_map = True
+        self.do_unlimited_map = False
         self.chat_box = ChatBox(self)
         self.chatting = False
         self.nb_zombies = 0
