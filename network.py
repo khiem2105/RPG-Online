@@ -50,6 +50,15 @@ class Network:
         for id in mobs_data.keys():
             self.data_frame += (",").join(["id:" + str(id), "Pos:" + str(mobs_data[id]["Pos"][0]) + "&" + str(mobs_data[id]["Pos"][1]), "Rot:" + str(mobs_data[id]["Rot"]), "Hp:" + str(mobs_data[id]["Hp"])]) + "!"
         self.data_frame += ";"
+    
+    def add_message_to_data(self, mess):  #For chatting
+        self.data_frame += (" ").join(["Chat:", mess]) + ";"
+        
+    def sync_resize_map(self, direction, data):
+        # Sync unlimited map
+        # Package : Extend_map <Direction:Right/Bottom> <Row> <Col> <X*Y numbers: Wall or Not>
+        self.data_frame += (" ").join(["Extend_map", direction, str(len(data[0])), str(len(data))] + [str(i) for line in data for i in line]) + ';'
+        if self.DEBUG : print(self.data_frame)
         
     def run_master(self):
         # Send data of master to all peers
@@ -166,8 +175,29 @@ class Network:
                     zombie_data = data[1]
                     self.analyse_zombie_data(zombie_data)
                     pass
+                elif data[0] == "Chat:":
+                    print(len(data))
+                    mess = self.game.other_player_list[id_player].player_name + ": "
+                    for i in range(1, len(data)):
+                        mess = mess + data[i] + " " 
+                    self.game.chat_box.is_text_reveived = True
+                    self.game.chat_box.write_log(mess)
                 elif data[0] == "Name:": # update name
                     self.game.other_player_list[id_player].player_name = data[1]
+                elif data[0] == "Extend_map": # update name
+                    # Package : Extend_map <Direction:Right/Bottom> <Row> <Col> <X*Y numbers: Wall or Not>
+                    i = 4
+                    cols = int(data[2])
+                    rows = int(data[3])
+                    extend_data = []
+                    for row in range(rows):
+                        line = []
+                        for col in range(cols):
+                            line.append(int(data[i]))
+                            i += 1
+                        extend_data.append(line)
+                    if self.DEBUG: print(extend_data)
+                    self.game.peer_extend_map(data[1], 15, extend_data)
 
     #  PEER Get data from other peers
     def peer_get_data(self):

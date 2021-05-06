@@ -23,7 +23,7 @@
 #define false 0
 #define true 1
 #define MAX_CONNECTION 5
-#define DEBUG 1
+#define DEBUG 0
 typedef int bool;
 // ------------------------------------------------------------
 // ------------------- Delaration variable ---------------------

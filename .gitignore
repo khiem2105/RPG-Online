@@ -5,3 +5,4 @@ build/
 *un~*
 __pycache__/
 InterfacePackage/__pycache__/
+.vscode/
