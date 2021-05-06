@@ -13,7 +13,7 @@ from sprites import OtherPlayer
 
 class Network:
     def __init__(self, game):
-        self.DEBUG = False
+        self.DEBUG = True
         self.game = game
         self.player_name = input("Your name :")
         self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 
@@ -22,6 +22,7 @@ class Network:
         self.first_message = True
         self.list_peer_connected_before_me = {} # {id : True/False}
         self.data_frame = ""
+        self.is_master = True
 
     def add_new_player(self, new_id, connected_before_me=False):
         print("[Python] Welcome player id %i!" %(new_id))
@@ -43,6 +44,12 @@ class Network:
 
     def add_action_to_data(self, action="S"):
         self.data_frame += (" ").join(["Action:", action]) + ";"
+
+    def add_mobs_to_data(self, mobs_data):
+        self.data_frame += "Zombie:" + " "
+        for id in mobs_data.keys():
+            self.data_frame += (",").join(["id:" + str(id), "Pos:" + str(mobs_data[id]["Pos"][0]) + "&" + str(mobs_data[id]["Pos"][1]), "Rot:" + str(mobs_data[id]["Rot"]), "Hp:" + str(mobs_data[id]["Hp"])]) + "!"
+        self.data_frame += ";"
         
     def run_master(self):
         # Send data of master to all peers
@@ -116,6 +123,27 @@ class Network:
         if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
         self.data_frame = ""
+
+    def analyse_zombie_data(self, zombie_data):
+        id = 0
+        pos = (0, 0)
+        rot = 0
+        hp = 0
+        for individual_data in zombie_data.split("!"):
+            if individual_data != "":
+                for attribute in individual_data.split(","):
+                    value = attribute.split(":")
+                    if value[0] == "id":
+                        id = int(value[1])
+                    elif value[0] == "Pos":
+                        x, y = value[1].split("&")
+                        pos = (float(x), float(y))
+                    elif value[0] == "Rot":
+                        rot = float(value[1])
+                    elif value[0] == "Hp":
+                        hp = float(value[1])
+            print(f"Id: {id}, Pos: {pos}, Rot: {rot}, Hp: {hp}")
+            self.game.player.updateZombie(id, pos, rot, hp)
         
     def analyse_data_received(self, data_received, id_player):
         if data_received != None and data_received != "":
@@ -134,14 +162,18 @@ class Network:
                     action = data[1]
                     if self.DEBUG: print("[Python] received from player ", id_player, " :", action)
                     self.game.other_player_list[id_player].updateAction(action)
+                elif data[0] == "Zombie:":
+                    zombie_data = data[1]
+                    self.analyse_zombie_data(zombie_data)
+                    pass
                 elif data[0] == "Name:": # update name
                     self.game.other_player_list[id_player].player_name = data[1]
 
     #  PEER Get data from other peers
     def peer_get_data(self):
         if self.first_message :
-            return 
-        try:
+            return
+        try: 
             # Receive data from master
             data_master = Cnetwork.peer_receive_from_master()
             self.analyse_data_received(data_master, -1)
@@ -162,7 +194,6 @@ class Network:
                 self.analyse_data_received(data, i)
                 if data != "" and data is not None:
                     print("Works :", data)
-
         except Exception as E:
             print(str(E))
 
@@ -215,6 +246,9 @@ class Network:
                     except:
                         pass
             self.first_message = False
+
+    def receive_mobs_from_master(self):
+        pass
 
     def trash(self):
         first_rev = True

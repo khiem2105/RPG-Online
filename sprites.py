@@ -131,6 +131,13 @@ class Player(pg.sprite.Sprite):
         self.damaged = True
         self.damage_alpha = chain(DAMAGE_ALPHA * 4)
 
+    def updateZombie(self, id, pos, rot, hp):
+        print("Updating...")
+        if not self.game.list_mobs.list[id]:
+            mob = Mob(self.game, pos[0], pos[1])
+            self.game.list_mobs.list[id] = mob
+            self.game.list_mobs.data[id] = {"Pos": pos, "Rot": rot, "Hp": hp}
+
     def update(self):
         # get data of others:
         if not self.game.network.is_master:
@@ -155,21 +162,31 @@ class Player(pg.sprite.Sprite):
         self.hit_rect.centery = self.pos.y
         collide_with_walls(self, self.game.walls, 'y')
         self.rect.center = self.hit_rect.center
-        if self.key_pressed:
-            print(f"Position after updated: {self.pos}")
-            self.game.network.add_pos_to_data(self.pos[0], self.pos[1], self.rot)
-            self.key_pressed = False
-            if self.game.network.is_master:
-                self.game.network.run_master()
-            else:
-                self.game.network.run_peer()
+        # send zombies data to all peer if master
+        if self.game.network.is_master:
+            self.game.network.add_mobs_to_data(self.game.list_mobs.data)
+            # self.game.network.run_master()
+        # if self.key_pressed:
+        #     print(f"Position after updated: {self.pos}")
+        #     self.game.network.add_pos_to_data(self.pos[0], self.pos[1], self.rot)
+        #     self.key_pressed = False
+        #     if self.game.network.is_master:
+        #         self.game.network.run_master()
+        #     else:
+        #         self.game.network.run_peer()
+        # else:
+        #     now = pg.time.get_ticks()
+        #     if now - self.last_send >= TIME_GAPS:
+        #         self.last_send = now
+        #         if self.game.network.is_master:
+        #             self.game.network.run_master()
+        #         else:
+        #             self.game.network.run_peer()
+        self.game.network.add_pos_to_data(self.pos[0], self.pos[1], self.rot)
+        if self.game.network.is_master:
+            self.game.network.run_master()
         else:
-            now = pg.time.get_ticks()
-            if now - self.last_send >= TIME_GAPS:
-                if self.game.network.is_master:
-                    self.game.network.run_master()
-                else:
-                    self.game.network.run_peer()
+            self.game.network.run_peer()
 
     def add_health(self, amount):
         self.health += amount
@@ -265,6 +282,7 @@ class Mob(pg.sprite.Sprite):
         self.health = MOB_HEALTH
         self.speed = choice(MOB_SPEEDS)
         self.target = self.game.player
+        print(f"Created mob at position: {self.pos.x}, {self.pos.y}")
 
     def avoid_mobs(self):
         for mob in self.game.mobs:
@@ -274,52 +292,53 @@ class Mob(pg.sprite.Sprite):
                     self.acc += dist.normalize()
 
     def update(self):
-        target_dist =[]
-        target_length =[]
-        target_dist_0 = (self.target.pos - self.pos)
-        temp = list(self.game.network.list_id())
-        l= len(temp)
-        for i in range(l):
-            target_dist.append(i)
-            target_dist[i] = (self.game.other_player_list[temp[i]].pos -self.pos)
-            target_length.append(i)
-            target_length[i] = target_dist[i].length_squared()
+        # target_dist =[]
+        # target_length =[]
+        # target_dist_0 = (self.target.pos - self.pos)
+        # temp = list(self.game.network.list_id())
+        # l= len(temp)
+        # for i in range(l):
+        #     target_dist.append(i)
+        #     target_dist[i] = (self.game.other_player_list[temp[i]].pos -self.pos)
+        #     target_length.append(i)
+        #     target_length[i] = target_dist[i].length_squared()
 
-        target_dist.append(self.target.pos - self.pos)
-        target_length.append((self.target.pos - self.pos).length_squared())
+        # target_dist.append(self.target.pos - self.pos)
+        # target_length.append((self.target.pos - self.pos).length_squared())
 
-        min_target = target_length[0]
-        k=0
-        for i in range(l+1):
-            if target_length[i] < min_target:
-                min_target = target_length[i]
-                k =i
+        # min_target = target_length[0]
+        # k=0
+        # for i in range(l+1):
+        #     if target_length[i] < min_target:
+        #         min_target = target_length[i]
+        #         k =i
 
-        if min_target < DETECT_RADIUS**2:
-            if random() < 0.002:
-                # choice(self.game.zombie_moan_sounds).play()
-                pass
-            self.rot = target_dist[k].angle_to(vec(1, 0))
-            self.image = pg.transform.rotate(self.game.mob_img, self.rot)
-            self.rect.center = self.pos
-            self.acc = vec(1, 0).rotate(-self.rot)
-            self.avoid_mobs()
-            if(self.acc.length_squared()>0):
-                self.acc.scale_to_length(self.speed)
-            self.acc += self.vel * -1
-            self.vel += self.acc * self.game.dt
-            temp=self.pos + self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
-            if temp.x<=self.game.map.width and temp.x>=0 and temp.y<=self.game.map.height and temp.y>=0:
-                self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
-            self.hit_rect.centerx = self.pos.x
-            collide_with_walls(self, self.game.walls, 'x')
-            self.hit_rect.centery = self.pos.y
-            collide_with_walls(self, self.game.walls, 'y')
-            self.rect.center = self.hit_rect.center
-        if self.health <= 0:
-            # choice(self.game.zombie_hit_sounds).play()
-            self.kill()
-            self.game.screen.blit(self.game.splat, self.pos - vec(32, 32))
+        # if min_target < DETECT_RADIUS**2:
+        #     if random() < 0.002:
+        #         # choice(self.game.zombie_moan_sounds).play()
+        #         pass
+        #     self.rot = target_dist[k].angle_to(vec(1, 0))
+        #     self.image = pg.transform.rotate(self.game.mob_img, self.rot)
+        #     self.rect.center = self.pos
+        #     self.acc = vec(1, 0).rotate(-self.rot)
+        #     self.avoid_mobs()
+        #     if(self.acc.length_squared()>0):
+        #         self.acc.scale_to_length(self.speed)
+        #     self.acc += self.vel * -1
+        #     self.vel += self.acc * self.game.dt
+        #     temp=self.pos + self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
+        #     if temp.x<=self.game.map.width and temp.x>=0 and temp.y<=self.game.map.height and temp.y>=0:
+        #         self.pos += self.vel * self.game.dt + 0.5 * self.acc * self.game.dt ** 2
+        #     self.hit_rect.centerx = self.pos.x
+        #     collide_with_walls(self, self.game.walls, 'x')
+        #     self.hit_rect.centery = self.pos.y
+        #     collide_with_walls(self, self.game.walls, 'y')
+        #     self.rect.center = self.hit_rect.center
+        # if self.health <= 0:
+        #     # choice(self.game.zombie_hit_sounds).play()
+        #     self.kill()
+        #     self.game.screen.blit(self.game.splat, self.pos - vec(32, 32))
+        pass
 
     def draw_health(self):
         if self.health > 60:

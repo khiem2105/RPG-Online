@@ -13,6 +13,7 @@ from network import *
 from menu import *
 from inventory import *
 from chat_box import *
+from monster import ListMobs
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -92,6 +93,7 @@ class Game:
         self.light_mask = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
         self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
+        self.nb_zombies = 0
         
     def extend_map(self):
         # print(self.player.pos)
@@ -168,7 +170,7 @@ class Game:
                 if tile == '1':
                     Wall(self, col, row)
                 if tile == 'M':
-                    Mob(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
+                    self.nb_zombies += 1
                 if tile == 'P':
                     self.player = Player(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'H':
@@ -186,6 +188,10 @@ class Game:
         self.menu=Menu(self)
         self.menu_is_running=True
         # self.effects_sounds['level_start'].play()
+    
+    def create_mobs(self):
+        self.list_mobs = ListMobs(self)
+        self.list_mobs.create_mob_list()
 
     def run(self):
         # game loop - set self.playing = False to end the game
@@ -262,6 +268,7 @@ class Game:
             mob.vel = vec(0, 0)
 
         self.chat_box.update()
+        self.list_mobs.update()
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
@@ -376,6 +383,7 @@ try:
         g.new()
         while g.menu_is_running:
             g.menu.display_menu()
+        g.create_mobs()
         g.run()
         g.show_go_screen()
 except Exception as E:
