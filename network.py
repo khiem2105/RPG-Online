@@ -70,7 +70,7 @@ class Network:
         message = self.data_frame
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.master_send_all(message)
-        if self.DEBUG: print("Master sent to all:" + message)
+        #if self.DEBUG: print("Master sent to all:" + message)
         # reset message
         self.data_frame = ""
 	
@@ -101,7 +101,7 @@ class Network:
             for i in self.list_id():
                 data = Cnetwork.master_get_message_from_player(i)
                 if data != None:
-                    if self.DEBUG: print("[Python] Master received data from player ",i ," : ", data)
+                    #if self.DEBUG: print("[Python] Master received data from player ",i ," : ", data)
                     self.analyse_data_received(data, i)
                     # data = data.split(';')
                     # if data[0] == "Data":
@@ -129,7 +129,7 @@ class Network:
         # add name
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.peer_send_all(message)
-        if self.DEBUG: print("Peer sent to all : " , message)
+        #if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
         self.data_frame = ""
 
@@ -141,7 +141,7 @@ class Network:
         # add name
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.peer_send_data_to_master(message)
-        if self.DEBUG: print("Peer sent to all : " , message)
+        #if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
         self.data_frame = ""
 
@@ -163,7 +163,7 @@ class Network:
                         rot = float(value[1])
                     elif value[0] == "Hp":
                         hp = float(value[1])
-            print(f"Id: {id}, Pos: {pos}, Rot: {rot}, Hp: {hp}")
+            #print(f"Id: {id}, Pos: {pos}, Rot: {rot}, Hp: {hp}")
             self.game.player.updateZombie(id, pos, rot, hp)
         
     def analyse_data_received(self, data_received, id_player):
@@ -171,29 +171,27 @@ class Network:
             data_received = data_received.split(';')
             for data in data_received:
                 data = data.split(" ")
-                if self.DEBUG: 
-                    if id_player == -1: print("data_master:", data)
+                # if self.DEBUG: 
+                #     if id_player == -1: print("data_master:", data)
                 # update position
                 if data[0] == "Pos:":
                     pos = float(data[1]), float(data[2])
                     rot = float(data[3])
-                    if self.DEBUG: print("[Python] received from player ", id_player, " :", pos, rot)
+                    #if self.DEBUG: print("[Python] received from player ", id_player, " :", pos, rot)
                     self.game.other_player_list[id_player].updatePosRot(pos, rot)
                 elif data[0] == "Action:":
                     action = data[1]
-                    if self.DEBUG: print("[Python] received from player ", id_player, " :", action)
+                    #if self.DEBUG: print("[Python] received from player ", id_player, " :", action)
                     self.game.other_player_list[id_player].updateAction(action)
                 elif data[0] == "Zombie:":
                     zombie_data = data[1]
                     self.analyse_zombie_data(zombie_data)
                     pass
                 elif data[0] == "Chat:":
-                    print(len(data))
-                    mess = self.game.other_player_list[id_player].player_name + ": "
+                    mess = "@"+self.game.other_player_list[id_player].player_name + ": "
                     for i in range(1, len(data)):
-                        mess = mess + data[i] + " " 
-                    self.game.chat_box.is_text_reveived = True
-                    self.game.chat_box.write_log(mess)
+                        mess = mess + data[i] + " "
+                    self.game.chat_box.write_log([mess,1])
                 elif data[0] == "Name:": # update name
                     self.game.other_player_list[id_player].player_name = data[1]
                 elif data[0] == "Extend_map": # update name
