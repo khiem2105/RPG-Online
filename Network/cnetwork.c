@@ -145,7 +145,7 @@ void Cmaster_send_message_to_all_others_peer(void) {
 		if (Master.peer_socket[i].fd != 0) {
 			Csend_message(Master.peer_socket[i].fd, global_buf);
 			//if (DEBUG) if (DEBUG) printf
-			if (DEBUG) printf("[C] sent to %i\n", i);
+			//if (DEBUG) printf("[C] sent to %i\n", i);
 		}
     }
 }
@@ -198,14 +198,14 @@ void Cpeer_send_all(char* message) {
     for (int i=0; i<Peer.max_peer; i++) {
 	if (Peer.peer_socket[i].fd != 0) {
 	    Csend_message(Peer.peer_socket[i].fd, message);
-	    if (DEBUG) printf("[C] Sent to player %d : %s\n", Peer.peer_socket[i].id, message );
+	    //if (DEBUG) printf("[C] Sent to player %d : %s\n", Peer.peer_socket[i].id, message );
 	}
     }
     // send to old peers
     for (int i=0; i<Peer.max_peer; i++) {
 	if (Peer.old_peer_socket[i].fd != 0) {
 	    Csend_message(Peer.old_peer_socket[i].fd, message);
-	    if (DEBUG) printf("[C] Sent to player %d : %s\n", Peer.old_peer_socket[i].id, message );
+	    //if (DEBUG) printf("[C] Sent to player %d : %s\n", Peer.old_peer_socket[i].id, message );
 	}
     }
 }
@@ -221,7 +221,7 @@ void Cmaster_send_all(char* message) {
     for (int i=0; i<Master.max_peer; i++) {
 	if (Master.peer_socket[i].fd != 0) {
 	    Csend_message(Master.peer_socket[i].fd, message);
-	    if (DEBUG) printf("[C] sent to %i\n", i);
+	    //if (DEBUG) printf("[C] sent to %i\n", i);
 	}
     }
 }
@@ -429,7 +429,7 @@ void Cincomming_message(void) {
 	    else {
 		Master.buffer[val_read] = '\0';
 		strcpy(Master.peer_socket[i].last_message , Master.buffer);
-		if (DEBUG) printf("[C] Message received from %i : %s --- Saved!\n", i, Master.peer_socket[i].last_message);
+		//if (DEBUG) printf("[C] Message received from %i : %s --- Saved!\n", i, Master.peer_socket[i].last_message);
 	    }
 	}
     }
@@ -699,7 +699,7 @@ void Cpeer_incomming_message(void) {
 		    sprintf(peer_buffer, "New;%i;", int_c);
 		} else {
 		    strcpy(Peer.peer_socket[i].last_message , Peer.buffer);
-		    if (DEBUG) printf("[C] Message received from index i = %i, id %i : %s --- Saved!\n",i,  Peer.peer_socket[i].id, Peer.peer_socket[i].last_message);
+		    //if (DEBUG) printf("[C] Message received from index i = %i, id %i : %s --- Saved!\n",i,  Peer.peer_socket[i].id, Peer.peer_socket[i].last_message);
 		}
 	    }
 	}
