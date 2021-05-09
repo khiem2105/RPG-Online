@@ -133,7 +133,7 @@ class Player(pg.sprite.Sprite):
         self.damage_alpha = chain(DAMAGE_ALPHA * 4)
 
     def updateZombie(self, id, pos, rot, hp):
-        print("Updating...")
+        #print("Updating...")
         if not self.game.list_mobs.list[id]:
             mob = CloneMob(self.game, pos[0], pos[1])
             self.game.list_mobs.list[id] = mob
