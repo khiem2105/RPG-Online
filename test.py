@@ -22,7 +22,7 @@ for individual_data in s.split("!"):
     if individual_data != "":
         print(individual_data)
         for attribute in individual_data.split(","):
-            print(attribute)
+            #print(attribute)
             value = attribute.split(":")
             if value[0] == "id":
                 id = int(value[1])
@@ -34,4 +34,4 @@ for individual_data in s.split("!"):
             elif value[0] == "Hp":
                 hp = float(value[1])
                 
-        print(f"Id: {id}, Pos: {pos}, Rot: {rot}, Hp: {hp}")
+        #print(f"Id: {id}, Pos: {pos}, Rot: {rot}, Hp: {hp}")
