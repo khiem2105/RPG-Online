@@ -389,6 +389,8 @@ class CloneMob(pg.sprite.Sprite):
         self.image = pg.transform.rotate(self.game.mob_img, self.rot)
         self.rect = self.image.get_rect()
         self.rect.center = pos
+        if self.health <= 0:
+            self.kill()
 
     def update(self):
         # target_dist =[]

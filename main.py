@@ -339,7 +339,7 @@ class Game:
         self.screen.fill(BGCOLOR)
         # self.screen.blit(self.map_img, self.camera.apply(self.map))
         for sprite in self.all_sprites:
-            if isinstance(sprite, Mob):
+            if isinstance(sprite, Mob) or isinstance(sprite, CloneMob):
                 sprite.draw_health()
             self.screen.blit(sprite.image, self.camera.apply(sprite))
             # draw name Player
