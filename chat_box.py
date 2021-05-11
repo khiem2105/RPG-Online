@@ -5,26 +5,35 @@ import Cnetwork
 class ChatBox:
     def __init__(self, game):
         self.game = game
-        self.surface = pygame.Surface((self.game.screen.get_width()//2, self.game.screen.get_height()//5)).convert()
-        self.surface.fill((200, 200, 200))
+        self.width = self.game.screen.get_width()//2
+        self.height = self.game.screen.get_height()//5
+        self.surface = pygame.Surface((self.width, self.height)).convert()
         self.rect = self.surface.get_rect()
-        self.rect.bottomleft = (0, self.game.screen.get_height())
         self.font = pygame.font.Font(None, 24)
         self.log = []
         # self.COLOR_INACTIVE = pygame.Color("lightskyblue3")
         # self.COLOR_ACTIVE = pygame.Color((255, 255, 255))
         # self.active = False
         self.input_box = InputBox(
-            self, 0, self.game.screen.get_height() - 32, 400, 32)
+            self, 0, self.game.screen.get_height() - 32)
         # Position beginning to print the log
         self.y_start = self.game.screen.get_height() - 32 - 32
+        self.zoom = False
 
     def update(self):
         self.input_box.update()
+        self.rect = self.surface.get_rect()
 
     def draw(self):
+        if self.zoom:
+            self.surface = pygame.Surface((self.width*1.5, self.height*3)).convert()
+            
+        else:
+            self.surface = pygame.Surface((self.width, self.height)).convert()
+        self.surface.fill((200, 200, 200))
+        self.rect.bottomleft = (0, self.game.screen.get_height())
         self.game.screen.blit(self.surface, self.rect,
-                              special_flags=BLEND_MULT)
+                            special_flags=BLEND_MULT)
         self.print_log()
         self.input_box.draw(self.game.screen)
 
@@ -40,7 +49,7 @@ class ChatBox:
             if self.log[i][1] ==1:            # self.log[i][1] indicate the text from another person send to me or not
                 x =5
             else:
-                x = self.game.screen.get_width()//4
+                x = self.rect.width//2
             #type(text) == str
             #print(self.log[i])
             if (self.log[i][0] != ""):
@@ -75,12 +84,18 @@ class ChatBox:
 
 class InputBox:
 
-    def __init__(self, chat_box, x, y, w, h, text='Chat here ...'):
+    def __init__(self, chat_box, x, y, text='Chat here ...'):
         self.chat_box = chat_box
         self.COLOR_INACTIVE = pygame.Color((150, 150, 150))
         self.COLOR_ACTIVE = pygame.Color((255, 255, 255))
         self.FONT = pygame.font.Font(None, 25)
-        self.rect = pygame.Rect(x, y, w, h)
+
+        self.x = x
+        self.y = y
+        self.width = self.chat_box.rect.width
+        self.height = 32
+        self.rect = pygame.Rect(x, y, self.width, self.height)
+
         self.color = self.COLOR_INACTIVE
         self.text = text
         self.txt_surface = self.FONT.render(text, True, self.color)
@@ -127,7 +142,8 @@ class InputBox:
         return self.active
 
     def update(self):
-        pass
+        self.width = self.chat_box.rect.width
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
     def draw(self, screen):
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+10))

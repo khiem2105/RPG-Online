@@ -395,6 +395,8 @@ class Game:
                         self.night = not self.night
                     if event.key ==pg.K_i:
                         self.inventory_is_activate = not self.inventory_is_activate
+                    if event.key == pg.K_z:
+                        self.chat_box.zoom = not self.chat_box.zoom
             if event.type==pg.MOUSEBUTTONDOWN and event.button==3:
                 self.is_right_click=True
                 self.mouse_pos_at_clicked=pg.mouse.get_pos()
