@@ -11,7 +11,6 @@ class ChatBox:
         self.rect.bottomleft = (0, self.game.screen.get_height())
         self.font = pygame.font.Font(None, 24)
         self.log = []
-        self.is_text_reveived = False
         # self.COLOR_INACTIVE = pygame.Color("lightskyblue3")
         # self.COLOR_ACTIVE = pygame.Color((255, 255, 255))
         # self.active = False
@@ -38,36 +37,37 @@ class ChatBox:
         sp = max(0, len(self.log) - 8)
         offset = min(self.input_box.camera, sp)
         for i in range(offset, len(self.log)):
-            if self.is_text_reveived:
+            if self.log[i][1] ==1:            # self.log[i][1] indicate the text from another person send to me or not
                 x =5
             else:
                 x = self.game.screen.get_width()//4
             #type(text) == str
             #print(self.log[i])
-            if (self.log[i] != ""):
-                if type(self.log[i]) == tuple:
-                    if self.log[i][0] == "combat":
-                        txt_surface = self.font.render(self.log[i][1], True, (255, 0, 0))
-                    if self.log[i][0] == "info":
-                        txt_surface = self.font.render(self.log[i][1], True, (255, 255, 255))
+            if (self.log[i][0] != ""):
+                if self.log[i][0] == "combat":
+                    txt_surface = self.font.render(self.log[i][1], True, (255, 0, 0))
+                if self.log[i][0] == "info":
+                    txt_surface = self.font.render(self.log[i][1], True, (255, 255, 255))
+                if (self.log[i][0][0] == "@") and (self.log[i][1] == 1):
+                    txt_surface = self.font.render(self.log[i][0], True, (255, 255, 0))
                 else:
-                    txt_surface = self.font.render(self.log[i], True, (255, 255, 0))
+                    txt_surface = self.font.render(self.log[i][0], True, (255, 255, 255))
+                        
                 self.game.screen.blit(txt_surface, (x, y))
                 y -= 25
             if y < self.rect.top:
                 break
 
     def write_log(self, text):
-        if type(text) != tuple:
+        if (type(text) != tuple) and (type(text) != list):
             texts = []
             while len(text) > 41:
                 head = text[:41] + '-'
                 text = text[41:]
                 texts.append(head)
-            texts.append(text)
-            # print(texts)
+            texts.append([text,0])
             for t in texts:
-                self.log.insert(0, t)
+                self.log.insert(0,t)
         else:
             self.log.insert(0, text)
         self.input_box.camera = 0
@@ -102,12 +102,11 @@ class InputBox:
         if event.type == KEYDOWN:
             if self.active:
                 if event.key == K_RETURN:
-                    self.chat_box.write_log(self.text)
+                    self.chat_box.write_log([self.text,0])
                     if (self.text != ""):
                         self.chat_box.game.network.add_message_to_data(self.text)
                     self.text = ''
                     self.camera = 0
-                    self.chat_box.is_text_reveived = False
                 elif event.key == K_BACKSPACE:
                     self.text = self.text[:-1]
                 else:

@@ -1,4 +1,5 @@
 from random import seed
+from sys import setdlopenflags
 import pygame as pg
 from os import path
 from settings import *
@@ -13,6 +14,8 @@ class Inventory():
         self.weapon = pg.image.load(path.join(self.game.img_folder, ITEM_IMAGES[self.weapon_name])).convert_alpha()
         self.weapon = pg.transform.scale(self.weapon, (TILESIZE, TILESIZE))
         self.back_pack_items=[None]*14
+        self.picked_item=None
+        # self.picked_item_number=None
     
     def update_items(self):
         self.weapon_name=self.game.player.weapon
@@ -21,6 +24,28 @@ class Inventory():
         for i in range(self.game.player.number_of_items):
             self.back_pack_items[i] = pg.image.load(path.join(self.game.img_folder, ITEM_IMAGES[self.game.player.back_pack[i]])).convert_alpha()
             self.back_pack_items[i] = pg.transform.scale(self.back_pack_items[i], (TILESIZE, TILESIZE))
+
+    def draw_item_at_the_mouse(self,image):
+        if image is not None:
+            self.game.screen.blit(image,(pg.mouse.get_pos()[0]-TILESIZE//2,pg.mouse.get_pos()[1]-TILESIZE//2))
+            
+
+    def find_image_at_the_mouse(self):
+        clicked_item=int((self.game.mouse_pos_at_clicked[0]+2.5*TILESIZE-WIDTH/2)/TILESIZE) + 5*int((self.game.mouse_pos_at_clicked[1]/TILESIZE-1))
+        if clicked_item in range(14):
+            # self.picked_item_number=clicked_item
+            self.picked_item= self.back_pack_items[clicked_item]
+        else:
+            self.picked_item= None 
+            # self.picked_item_number=None
+    
+    def remove_item(self):
+        if self.picked_item is not None:
+            self.game.player.back_pack.remove(self.picked_item )
+            self.game.player.number_of_items -=1
+    def use_item(self):
+        pass
+
     def display_inventory(self):
         # display inventory
         pg.draw.rect(self.game.screen,(80,150,150),(WIDTH/2-2.5*TILESIZE,TILESIZE,TILESIZE*5,TILESIZE*3))
@@ -33,9 +58,19 @@ class Inventory():
         
         # display items
         self.update_items()
-        # backpack items
+        # --- backpack items
         for i in range(self.game.player.number_of_items):
             self.game.screen.blit(self.back_pack_items[i],(WIDTH/2-2.5*TILESIZE +(i%5)*TILESIZE,TILESIZE*(1+i//5)))
         self.game.screen.blit(self.trash_can,(WIDTH/2+1.5*TILESIZE,TILESIZE*3))
-        # in used items
+        # --- in used items
         self.game.screen.blit(self.weapon,(WIDTH/2-2.5*TILESIZE,TILESIZE*5))
+        if self.game.is_left_click:
+            self.find_image_at_the_mouse()
+            self.draw_item_at_the_mouse(self.picked_item)
+        elif self.picked_item is not None:
+            # print(pg.mouse.get_pos,int(WIDTH+1.5*TILESIZE),int(WIDTH+2.5*TILESIZE),3*TILESIZE,4*TILESIZE)
+            if int(pg.mouse.get_pos()[0]) in range(int(WIDTH+1.5*TILESIZE),int(WIDTH+2.5*TILESIZE)) and int(pg.mouse.get_pos()[1]) in range(3*TILESIZE,4*TILESIZE):
+                self.remove_item()
+                # print("aloaaaaaaaaa")
+
+        # print(self.game.player.number_of_items)
