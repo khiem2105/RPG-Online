@@ -2,6 +2,7 @@
 # Tile-based game - Part 23
 # Lighting Effect
 # Video link: https://youtu.be/IWm5hi5Yrvk
+from warnings import showwarning
 import pygame as pg
 import sys
 from random import choice, random, randint, seed
@@ -221,11 +222,23 @@ class Game:
                     self.nb_zombies += 1
                 if tile == 'P':
                     self.player = Player(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
-                if tile == 'H':
+                if tile == 'h':
                     Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
                 if tile == 'G':
                     gun=choice(WEAPONS_NAME)
                     Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
+                if tile =="H":
+                    helmet=choice(HELMETS_NAME)
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], helmet)
+                if tile =="A":
+                    armor=choice(ARMORS_NAME)
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], armor)
+                if tile =="L":
+                    pants=choice(PANTS_NAME)
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], pants)
+                if tile =="S":
+                    shoes=choice(SHOES_NAME)
+                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], shoes)
         self.camera = Camera(self.map.width, self.map.height)
         self.inventory = Inventory(self)
         self.draw_debug = False
@@ -279,14 +292,46 @@ class Game:
                 hit.kill()
                 # self.effects_sounds['health_up'].play()
                 self.player.add_health(HEALTH_PACK_AMOUNT)
-            #pickup weapons
+            #pickup items
             if hit.type in WEAPONS_NAME and self.player.number_of_items<14:
                 hit.kill()
                 # self.effects_sounds['gun_pickup'].play()
                 self.player.back_pack[self.player.number_of_items] = self.player.weapon
                 self.player.number_of_items +=1
                 self.player.weapon = hit.type
-
+            if hit.type in HELMETS_NAME and self.player.number_of_items<14:
+                hit.kill()
+                if self.player.helmet is not None:
+                    self.player.back_pack[self.player.number_of_items] = self.player.helmet
+                    self.player.number_of_items +=1
+                    self.player.helmet = hit.type
+                else:
+                    self.player.helmet = hit.type
+            if hit.type in ARMORS_NAME and self.player.number_of_items<14:
+                hit.kill()
+                if self.player.armor is not None:
+                    self.player.back_pack[self.player.number_of_items] = self.player.armor
+                    self.player.number_of_items +=1
+                    self.player.armor = hit.type
+                else:
+                    self.player.armor = hit.type
+            if hit.type in PANTS_NAME and self.player.number_of_items<14:
+                hit.kill()
+                if self.player.pants is not None:
+                    self.player.back_pack[self.player.number_of_items] = self.player.pants
+                    self.player.number_of_items +=1
+                    self.player.pants = hit.type
+                else:
+                    self.player.pants = hit.type
+            if hit.type in SHOES_NAME and self.player.number_of_items<14:
+                hit.kill()
+                if self.player.shoes is not None:
+                    self.player.back_pack[self.player.number_of_items] = self.player.shoes
+                    self.player.number_of_items +=1
+                    self.player.shoes = hit.type
+                else:
+                    self.player.shoes = hit.type
+            
         # mobs hit player
         # hits_1 = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
         # for hit in hits_1:

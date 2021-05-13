@@ -1,3 +1,4 @@
+from random import seed
 import pygame as pg
 from os import path
 vec = pg.math.Vector2
@@ -76,19 +77,28 @@ WEAPONS['uzi'] = {'bullet_speed': 700,
 # Helmets setting
 HELMETS_NAME=["helmet1","helmet2"]
 HELMETS = {}
-
+HELMETS["helmet1"]={'health':10 }
+HELMETS["helmet2"]={'health':15 }
 # Armor settings
 ARMORS_NAME =["armor1","armor2"]
 ARMORS = {}
+ARMORS["armor1"]={"health":20}
+ARMORS["armor2"]={"health":30}
 
 # pants settings
 PANTS_NAME=["pants1","pants2"]
 PANTS = {}
-
+PANTS["pants1"]={'health':10,
+                'speed':10}
+PANTS["pants2"]={'health':15,
+                'speed':15}
 # shoes settings
 SHOES_NAME =["shoes1","shoes2"]
 SHOES ={}
-
+SHOES["shoes1"]={'health':10,
+                'speed':10}
+SHOES["shoes2"]={'health':15,
+                'speed':15}
 # Mob settings
 MOB_IMG = 'zombie1_hold.png'
 MOB_SPEEDS = [150, 100, 75, 125]

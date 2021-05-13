@@ -46,6 +46,10 @@ class Player(pg.sprite.Sprite):
         self.last_shot = 0
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
+        self.helmet = None
+        self.armor = None
+        self.pants = None
+        self.shoes = None
         self.damaged = False
         self.player_name = self.game.network.player_name
         self.last_move = 0
