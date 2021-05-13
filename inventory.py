@@ -1,8 +1,9 @@
-from random import seed
+# from random import seed
 from sys import setdlopenflags
 import pygame as pg
 from os import path
 from settings import *
+import numpy as np
 
 # inventory class, that contains items
 class Inventory():
@@ -15,7 +16,7 @@ class Inventory():
         self.weapon = pg.transform.scale(self.weapon, (TILESIZE, TILESIZE))
         self.back_pack_items=[None]*14
         self.picked_item=None
-        # self.picked_item_number=None
+        self.picked_item_number=None
     
     def update_items(self):
         self.weapon_name=self.game.player.weapon
@@ -33,17 +34,30 @@ class Inventory():
     def find_image_at_the_mouse(self):
         clicked_item=int((self.game.mouse_pos_at_clicked[0]+2.5*TILESIZE-WIDTH/2)/TILESIZE) + 5*int((self.game.mouse_pos_at_clicked[1]/TILESIZE-1))
         if clicked_item in range(14):
-            # self.picked_item_number=clicked_item
+            self.picked_item_number=clicked_item
             self.picked_item= self.back_pack_items[clicked_item]
         else:
             self.picked_item= None 
-            # self.picked_item_number=None
+            self.picked_item_number=None
     
     def remove_item(self):
-        if self.picked_item is not None:
-            self.game.player.back_pack.remove(self.picked_item )
+        if self.picked_item_number is not None:
+            
+            self.game.player.back_pack.pop(self.picked_item_number)
+            self.game.player.back_pack +=[None]
             self.game.player.number_of_items -=1
+            self.picked_item_number=None
+            self.picked_item = None
     def use_item(self):
+        if self.picked_item_number is not None:
+            if self.game.player.back_pack[self.picked_item_number] in WEAPONS_NAME:
+                self.game.player.weapon,self.game.player.back_pack[self.picked_item_number]=self.game.player.back_pack[self.picked_item_number],self.game.player.weapon
+
+            
+            self.picked_item_number=None
+            self.picked_item = None
+
+    def display_stats(self):
         pass
 
     def display_inventory(self):
@@ -67,10 +81,9 @@ class Inventory():
         if self.game.is_left_click:
             self.find_image_at_the_mouse()
             self.draw_item_at_the_mouse(self.picked_item)
-        elif self.picked_item is not None:
-            # print(pg.mouse.get_pos,int(WIDTH+1.5*TILESIZE),int(WIDTH+2.5*TILESIZE),3*TILESIZE,4*TILESIZE)
-            if int(pg.mouse.get_pos()[0]) in range(int(WIDTH+1.5*TILESIZE),int(WIDTH+2.5*TILESIZE)) and int(pg.mouse.get_pos()[1]) in range(3*TILESIZE,4*TILESIZE):
+        elif self.picked_item_number is not None:
+            if int(pg.mouse.get_pos()[0]) in range(int(WIDTH//2+1.5*TILESIZE),int(WIDTH//2+2.5*TILESIZE)) and int(pg.mouse.get_pos()[1]) in range(3*TILESIZE,4*TILESIZE):
                 self.remove_item()
-                # print("aloaaaaaaaaa")
-
+            if int(pg.mouse.get_pos()[0]) in range(int(WIDTH//2-2.5*TILESIZE),int(WIDTH//2+2.5*TILESIZE)) and int(pg.mouse.get_pos()[1]) in range(5*TILESIZE,6*TILESIZE) :
+                self.use_item()
         # print(self.game.player.number_of_items)

@@ -73,7 +73,21 @@ WEAPONS['uzi'] = {'bullet_speed': 700,
                       'damage': 3,
                       'bullet_size': 'sm',
                       'bullet_count': 1}
+# Helmets setting
+HELMETS_NAME=["helmet1","helmet2"]
+HELMETS = {}
 
+# Armor settings
+ARMORS_NAME =["armor1","armor2"]
+ARMORS = {}
+
+# pants settings
+PANTS_NAME=["pants1","pants2"]
+PANTS = {}
+
+# shoes settings
+SHOES_NAME =["shoes1","shoes2"]
+SHOES ={}
 
 # Mob settings
 MOB_IMG = 'zombie1_hold.png'
@@ -107,7 +121,15 @@ ITEMS_LAYER = 1
 ITEM_IMAGES = {'health': 'health_pack.png',
                'shotgun': 'shotgun.png',
                'uzi':'uzi.png',
-               'pistol':'pistol.png'}
+               'pistol':'pistol.png',
+               'helmet1':'helmet1.png',
+               'helmet2':'helmet2.png',
+               'armor1':'armor1.png',
+               'armor2':'armor2.png',
+               'pants1':'pants1.png',
+               'pants2':'pants2.png',
+               'shoes1':'shoes1.png',
+               'shoes2':'shoes2.png',}
 HEALTH_PACK_AMOUNT = 20
 BOB_RANGE = 10
 BOB_SPEED = 0.3
