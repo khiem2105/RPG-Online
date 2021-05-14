@@ -23,6 +23,7 @@ class Network:
         self.list_peer_connected_before_me = {} # {id : True/False}
         self.data_frame = ""
         self.is_master = True
+        self.data_store = {} # key : value === name : data
 
     def add_new_player(self, new_id, connected_before_me=False):
         print("[Python] Welcome player id %i!" %(new_id))
@@ -94,8 +95,10 @@ class Network:
                 elif data[0] == "Disconnected":
                     id_player = int(data[1])
                     if self.DEBUG : print("Player", id_player, "disconnected! Deleted from the list...")
+                    print(self.game.other_player_list[id_player].name)
                     self.game.other_player_list[id_player].kill()
                     self.game.other_player_list.pop(id_player, None)
+                    # self.data_store['']
         except Exception as E:
             print(str(E))
 

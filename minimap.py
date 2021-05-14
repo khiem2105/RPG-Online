@@ -49,10 +49,15 @@ class Minimap:
             pygame.draw.circle(self.surface, BLUE, (x, y), 10)
 
         for mob in self.game.list_mobs.list.values():
-            if mob is None : continue
-            x, y = mob.pos
-            x, y = self.calculate(x, y , offset_x, offset_y)
-            pygame.draw.circle(self.surface, YELLOW, (x, y) , 10)
+            if mob is None : continue 
+            try:
+                if self.game.fog.surface.get_at([int(i) for i in mob.pos]) != NIGHT_COLOR:
+                    x, y = mob.pos
+                    x, y = self.calculate(x, y , offset_x, offset_y)
+                    pygame.draw.circle(self.surface, YELLOW, (x, y) , 10)
+
+            except Exception as E:
+                print("Error (update/Mob/Sprite) : ", str(E))
         self.screen.blit(self.surface, self.rect)
 
 
