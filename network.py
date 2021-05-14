@@ -32,6 +32,9 @@ class Network:
         self.game.other_player_list[new_id] = new_player
         print("[Python] Created new instance of OtherPlayer() ")
         print("[Python] List of players : ", self.game.other_player_list)
+        
+        self.add_items_to_data(self.game.items_data)
+        Cnetwork.master_send_to_peer_with_id(self.data_frame, new_id)
 
     def init_master(self):
         print("[Python] you are the master peer! with port "+str(self.game.port))
@@ -54,8 +57,11 @@ class Network:
     def add_message_to_data(self, mess):  #For chatting
         self.data_frame += (" ").join(["Chat:", mess]) + ";"
     
-    def add_item_to_data(self,x,y,type):
-        self.data_frame += (" ").join(["Item:",str(x),str(y),str(type)])+";"
+    def add_items_to_data(self,items_data):
+        self.data_frame += "Items:"+" "
+        for item in items_data:
+            self.data_frame += (" ").join(["x",str(item["x"]),"y",str(item["y"]),"type",str(item["type"])])+"!"
+        self.data_frame+= ";"
 
     def sync_resize_map(self, direction, data):
         # Sync unlimited map
@@ -64,8 +70,9 @@ class Network:
         if self.DEBUG : print(self.data_frame)
         
     def run_master(self):
-        # test
-        Cnetwork.master_send_to_peer_with_id("con cac nhe", 0)
+        # # test
+        # Cnetwork.master_send_to_peer_with_id("con cac nhe", 0)
+
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
         # Check if data_frame = NULL => return (not send)
@@ -170,7 +177,10 @@ class Network:
                         hp = float(value[1])
             #print(f"Id: {id}, Pos: {pos}, Rot: {rot}, Hp: {hp}")
             self.game.player.updateZombie(id, pos, rot, hp)
-        
+    
+    def analyse_items_data(self,data):
+        pass
+
     def analyse_data_received(self, data_received, id_player):
         if data_received != None and data_received != "":
             data_received = data_received.split(';')
@@ -213,6 +223,13 @@ class Network:
                         extend_data.append(line)
                     if self.DEBUG: print(extend_data)
                     self.game.peer_extend_map(data[1], 15, extend_data)
+                elif data[0] =="Items:":
+                    print("-------------------------------------")
+                    print("-------------------------------------")
+                    print("-------------------------------------")
+                    print(data[1])
+                    self.analyse_items_data(data[1])
+
 
     #  PEER Get data from other peers
     def peer_get_data(self):
@@ -286,6 +303,8 @@ class Network:
                         print("[Python] New connection: ", newId, newIp, newPort)
                         newId = int(newId)  
                         newPort = int(newPort) + 1 
+                        # self.add_items_to_data(self.game.items_data)
+                        # Cnetwork.master_send_to_peer_with_id(self.data_frame, newId)
                         Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
                         self.add_new_player(newId, True)
                     except:

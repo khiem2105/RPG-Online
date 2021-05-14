@@ -57,7 +57,8 @@ class Game:
         self.is_right_click=False
         self.is_left_click=False
         self.mouse_pos_at_clicked =[0,0]
-
+        # items data
+        self.items_data= []
 
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
@@ -215,7 +216,8 @@ class Game:
         #                  tile_object.width, tile_object.height)
         #     if tile_object.name in ['health', 'shotgun']:
         #         Item(self, obj_center, tile_object.name)
-            
+        
+
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
                 if tile == '1':
@@ -225,47 +227,41 @@ class Game:
                 if tile == 'P':
                     self.player = Player(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'h':
-                    if self.network.is_master: 
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
-                    else:
-                        # receive data and then init items
-                        pass
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":'health'})                    
                 if tile == 'G':
-                    if self.network.is_master:
-                        gun=choice(WEAPONS_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
-                    else:
-                        # receive data and then init items
-                        pass
+                    gun=choice(WEAPONS_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":gun}) 
                 if tile =="H":
-                    if self.network.is_master:
-                        helmet=choice(HELMETS_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], helmet)
-                    else:
-                        # receive data and then init items
-                        pass
+                    helmet=choice(HELMETS_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], helmet)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":helmet}) 
                 if tile =="A":
-                    if self.network.is_master:
-                        armor=choice(ARMORS_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], armor)
-                    else:
-                        # receive data and then init items
-                        pass
+                    armor=choice(ARMORS_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], armor)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":armor}) 
                 if tile =="L":
-                    if self.network.is_master:
-                        pants=choice(PANTS_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], pants)
-                    else:
-                        # receive data and then init items
-                        pass
+                    pants=choice(PANTS_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], pants)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":pants}) 
                 if tile =="S":
-                    if self.network.is_master:
-                        shoes=choice(SHOES_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], shoes)
-                    else:
-                        # receive data and then init items
-                        pass
-
+                    shoes=choice(SHOES_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], shoes)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":shoes}) 
+    
         self.camera = Camera(self.map.width, self.map.height)
         self.inventory = Inventory(self)
         self.draw_debug = False
@@ -277,6 +273,23 @@ class Game:
         self.menu_is_running=True
         # self.effects_sounds['level_start'].play()
     
+    def init_items(self):
+        if self.network.is_master:
+            print("--------------------------")
+            print("master")
+            print("-----------------------------")
+        else:
+            print("--------------------------")
+            print("peer")
+            print("-----------------------------")
+            
+        if self.network.is_master:
+            for item in self.items_data:
+                Item(self, [int(item["x"]),int(item["y"])], item['type'])
+        else:
+            pass
+            # peer
+
     def create_mobs(self):
         self.list_mobs = ListMobs(self)
         self.list_mobs.create_mob_list()
@@ -518,6 +531,7 @@ try:
         g.new()
         while g.menu_is_running:
             g.menu.display_menu()
+        g.init_items()
         g.create_mobs()
         g.run()
         g.show_go_screen()
