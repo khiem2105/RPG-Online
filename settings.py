@@ -14,6 +14,7 @@ ALEGREYA_ITALIC = path.join(fonts_folder, "alegreya_italic.ttf")
 WALL_IMG = 'tileGreen_39.png'
 
 # define some colors (R, G, B)
+BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 DARKGREY = (40, 40, 40)
