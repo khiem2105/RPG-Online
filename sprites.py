@@ -345,6 +345,12 @@ class Mob(pg.sprite.Sprite):
             # choice(self.game.zombie_hit_sounds).play()
             self.kill()
             self.game.screen.blit(self.game.splat, self.pos - vec(32, 32))
+            list_mob = self.game.list_mobs.list
+            for id_mob in list_mob.keys():
+                if self == list_mob[id_mob]:
+                    del list_mob[id_mob]
+                    del self.game.list_mobs.data[id_mob]
+                    break
 
     def draw_health(self):
         if self.health > 60:

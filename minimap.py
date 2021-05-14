@@ -32,10 +32,9 @@ class Minimap:
                 pygame.draw.rect(self.extra_surface, color, (RATE*col, RATE*row, RATE, RATE))
 
     def calculate(self, x, y, offset_x, offset_y):
-        pos_x, pos_y = self.player.pos
-        pos_x = pos_x / TILESIZE * self.RATE + offset_x
-        pos_y = pos_y / TILESIZE * self.RATE + offset_y
-        return pos_x, pos_y
+        x = x / TILESIZE * self.RATE + offset_x
+        y = y / TILESIZE * self.RATE + offset_y
+        return x, y
 
     def draw_minimap(self):
         offset_x =  self.game.camera.camera.left * WIDTH / self.game.map.width / 1.5
@@ -44,15 +43,21 @@ class Minimap:
         pos_x, pos_y = self.player.pos
         pos_x, pos_y = self.calculate(pos_x, pos_y, offset_x, offset_y)
         pygame.draw.circle(self.surface, RED, (pos_x, pos_y), 10)
-        # for other in self.game.other_player_list.values():
-            # x, y = other.pos
-            # x, y = self.calculate(x, y , offset_x, offset_y)
-            # pygame.draw.circle(self.surface, BLUE, (x, y), 10)
+        for other in self.game.other_player_list.values():
+            x, y = other.pos
+            x, y = self.calculate(x, y , offset_x, offset_y)
+            pygame.draw.circle(self.surface, BLUE, (x, y), 10)
 
-        # for mob in self.game.list_mobs.list.values():
-            # x, y = mob.pos
-            # x, y = self.calculate(x, y , offset_x, offset_y)
-            # pygame.draw.circle(self.surface, YELLOW, (x, y) , 10)
+        for mob in self.game.list_mobs.list.values():
+            if mob is None : continue 
+            try:
+                if self.game.fog.surface.get_at([int(i) for i in mob.pos]) != NIGHT_COLOR:
+                    x, y = mob.pos
+                    x, y = self.calculate(x, y , offset_x, offset_y)
+                    pygame.draw.circle(self.surface, YELLOW, (x, y) , 10)
+
+            except Exception as E:
+                print("Error (update/Mob/Sprite) : ", str(E))
         self.screen.blit(self.surface, self.rect)
 
 
