@@ -1,6 +1,7 @@
 import pygame
+import sys
 from pygame.locals import *
-from InterfacePackage import Text,TextEntry,Button
+from InterfacePackage.Button import *
 from settings import *
 import Cnetwork
 
@@ -21,13 +22,14 @@ class ChatBox:
         # Position beginning to print the log
         self.y_start = self.game.screen.get_height() - 32 - 32
         self.zoom = False
-        self.chat_button = Button(self.game,60,HEIGHT - self.rect.height,"Chat",ENCHANT_FONT,BLACK_HEX,30)
+        #Create a button to hided/ unhided chat's window
+        self.chat_button = Button2(self.game,30,HEIGHT - self.rect.height,pygame.image.load('img/arrow_down.png'), pygame.image.load('img/arrow_down.png'))
+        
         self.chat_button_down = False
 
     def update(self):
         self.input_box.update()
         self.rect = self.surface.get_rect()
-        #self.rect.bottomleft = (0, self.game.screen.get_height())
 
     def draw(self):
         if self.zoom:
@@ -39,17 +41,16 @@ class ChatBox:
 
         if self.chat_button_down:
             self.rect.bottomleft = (0, self.game.screen.get_height()+ self.rect.height)
-            self.chat_button = Button(self.game,60,HEIGHT - 25,"Chat",ENCHANT_FONT,BLACK_HEX,30)
+            self.chat_button = Button2(self.game,20,HEIGHT - 25, pygame.image.load('img/arrow_up.png'), pygame.image.load('img/arrow_up.png'))
         else:
             self.rect.bottomleft = (0, self.game.screen.get_height())
-            self.chat_button = Button(self.game,60,HEIGHT - 25 - self.rect.height,"Chat",ENCHANT_FONT,BLACK_HEX,30)
+            self.chat_button = Button2(self.game,20,HEIGHT - 25 - self.rect.height,pygame.image.load('img/arrow_down.png'), pygame.image.load('img/arrow_down.png'))
+            self.print_log()
         self.game.screen.blit(self.surface, self.rect,
                             special_flags=BLEND_MULT)
-        self.print_log()
         self.input_box.draw(self.game.screen)
 
         self.chat_button.display_button()
-        self.chat_button.color_on_mouse(WHITE_HEX)
 
     def handle_event(self, event):
         active = self.input_box.handle_event(event)
@@ -108,8 +109,6 @@ class InputBox:
 
         self.x = x
         self.y = y
-        print(self.y)
-        print(self.x, self.y)
         self.width = self.chat_box.rect.width
         self.height = 32
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)

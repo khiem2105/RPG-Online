@@ -64,8 +64,6 @@ class Network:
         if self.DEBUG : print(self.data_frame)
         
     def run_master(self):
-        # test
-        Cnetwork.master_send_to_peer_with_id("con cac nhe", 0)
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
         # Check if data_frame = NULL => return (not send)
