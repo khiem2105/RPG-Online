@@ -5,7 +5,7 @@
 from warnings import showwarning
 import pygame as pg
 import sys
-from random import choice, random, randint, seed
+from random import choice, randint
 from os import path
 from settings import *
 from sprites import *
@@ -214,6 +214,7 @@ class Game:
         #                  tile_object.width, tile_object.height)
         #     if tile_object.name in ['health', 'shotgun']:
         #         Item(self, obj_center, tile_object.name)
+            
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
                 if tile == '1':
@@ -223,22 +224,47 @@ class Game:
                 if tile == 'P':
                     self.player = Player(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'h':
-                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
+                    if self.network.is_master: 
+                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
+                    else:
+                        # receive data and then init items
+                        pass
                 if tile == 'G':
-                    gun=choice(WEAPONS_NAME)
-                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
+                    if self.network.is_master:
+                        gun=choice(WEAPONS_NAME)
+                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
+                    else:
+                        # receive data and then init items
+                        pass
                 if tile =="H":
-                    helmet=choice(HELMETS_NAME)
-                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], helmet)
+                    if self.network.is_master:
+                        helmet=choice(HELMETS_NAME)
+                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], helmet)
+                    else:
+                        # receive data and then init items
+                        pass
                 if tile =="A":
-                    armor=choice(ARMORS_NAME)
-                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], armor)
+                    if self.network.is_master:
+                        armor=choice(ARMORS_NAME)
+                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], armor)
+                    else:
+                        # receive data and then init items
+                        pass
                 if tile =="L":
-                    pants=choice(PANTS_NAME)
-                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], pants)
+                    if self.network.is_master:
+                        pants=choice(PANTS_NAME)
+                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], pants)
+                    else:
+                        # receive data and then init items
+                        pass
                 if tile =="S":
-                    shoes=choice(SHOES_NAME)
-                    Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], shoes)
+                    if self.network.is_master:
+                        shoes=choice(SHOES_NAME)
+                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], shoes)
+                    else:
+                        # receive data and then init items
+                        pass
+
         self.camera = Camera(self.map.width, self.map.height)
         self.inventory = Inventory(self)
         self.draw_debug = False
@@ -289,17 +315,20 @@ class Game:
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
             if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
+                print(hit)
                 hit.kill()
                 # self.effects_sounds['health_up'].play()
                 self.player.add_health(HEALTH_PACK_AMOUNT)
             #pickup items
             if hit.type in WEAPONS_NAME and self.player.number_of_items<14:
+                print(hit)
                 hit.kill()
                 # self.effects_sounds['gun_pickup'].play()
                 self.player.back_pack[self.player.number_of_items] = self.player.weapon
                 self.player.number_of_items +=1
                 self.player.weapon = hit.type
             if hit.type in HELMETS_NAME and self.player.number_of_items<14:
+                print(hit)
                 hit.kill()
                 if self.player.helmet is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.helmet
@@ -308,6 +337,7 @@ class Game:
                 else:
                     self.player.helmet = hit.type
             if hit.type in ARMORS_NAME and self.player.number_of_items<14:
+                print(hit)
                 hit.kill()
                 if self.player.armor is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.armor
@@ -316,6 +346,7 @@ class Game:
                 else:
                     self.player.armor = hit.type
             if hit.type in PANTS_NAME and self.player.number_of_items<14:
+                print(hit)
                 hit.kill()
                 if self.player.pants is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.pants
@@ -324,6 +355,7 @@ class Game:
                 else:
                     self.player.pants = hit.type
             if hit.type in SHOES_NAME and self.player.number_of_items<14:
+                print(hit)
                 hit.kill()
                 if self.player.shoes is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.shoes
