@@ -299,7 +299,7 @@ class Game:
                 if self.do_unlimited_map:
                     self.master_extend_map()
             self.draw()
-            # print(f"player name {self.player.player_name} other player {self.other_player_list}")
+
             if not self.network.is_master:
                 if self.network.first_message:
                     self.network.receive_first_message()

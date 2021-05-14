@@ -67,8 +67,7 @@ class ChatBox:
                 x =5
             else:
                 x = self.rect.width//2
-            #type(text) == str
-            #print(self.log[i])
+                
             if (self.log[i][0] != ""):
                 if self.log[i][0] == "combat":
                     txt_surface = self.font.render(self.log[i][1], True, (255, 0, 0))
