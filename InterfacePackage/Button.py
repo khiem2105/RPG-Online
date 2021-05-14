@@ -30,7 +30,6 @@ class Button(object):
         self.font_obj = pg.font.Font(font, self.font_size)
         self.text_surface = self.font_obj.render(text, True, pg.Color(text_color))
         self.rectText = self.text_surface.get_rect()
-        print(self.rectText)
         self.rectText.center = self.rect.center
 
 
