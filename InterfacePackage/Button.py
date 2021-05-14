@@ -10,7 +10,7 @@ class Button(object):
             background_hover=pg.image.load('img/large_button_over.png')):
         self.game = game
         #resize the button
-        background = pg.transform.scale(background, (int(background.get_width() )//2, int(background.get_height() )//2)).convert_alpha()
+        background = pg.transform.scale(background, (int(background.get_width()//2 ), int(background.get_height()//2 ))).convert_alpha()
         background_hover = pg.transform.scale(background_hover, (int(background_hover.get_width() )//2, int(background_hover.get_height() )//2)).convert_alpha()
 
         #Text and fonts of our button
@@ -67,3 +67,47 @@ class Button(object):
         self.y = y-self.button_background.get_height()//2
         self.rect = self.button_background.get_rect(x=self.x, y=self.y)
         self.rectText.center = self.rect.center
+
+class Button2(object):
+    """This class aims to create buttons that the user can click. 
+    Notice that you need to handle what to do when the button is clicked oustide this class !"""
+
+    def __init__(self, game, px, py, background, background_hover):
+        self.game = game
+    
+        #resize the button
+        background = pg.transform.scale(background, (20,20)).convert_alpha()
+        background_hover = pg.transform.scale(background_hover, (32,32)).convert_alpha()
+
+
+        #Background of the Button
+        self.button_background = background.convert_alpha()
+        self.x=px-self.button_background.get_width()//2 #Centering our coords
+        self.y=(py-self.button_background.get_height()//2)  
+        self.rect = self.button_background.get_rect(x=self.x, y=self.y)  # Create rectangle surface the same size as the button
+        self.button_background_hover = background_hover.convert_alpha()
+
+
+    def display_button(self):
+        """This functions displays the button"""
+        if self.rect.collidepoint(pg.mouse.get_pos()) :
+            self.game.screen.blit(self.button_background_hover, (self.x,self.y)) #Changing the button color
+        else:
+            self.game.screen.blit(self.button_background, (self.x, self.y))
+    
+
+    def selected_display(self, new_color):
+        "This fonction display another version of the button when selected (same as when color on mouse)"
+        self.game.screen.blit(self.button_background_hover, (self.x,self.y)) #Changing the button color
+
+    def is_clicked(self, event):
+        """Returns true if the button is clicked"""
+        if event.type == pg.MOUSEBUTTONDOWN and self.rect.collidepoint(pg.mouse.get_pos()) and event.button == 1: #left clicked only
+            return True
+    
+
+    def set_position(self, x, y):
+        """Moves the buttons to new coords"""
+        self.x = x-self.button_background.get_width()//2
+        self.y = y-self.button_background.get_height()//2
+        self.rect = self.button_background.get_rect(x=self.x, y=self.y)
