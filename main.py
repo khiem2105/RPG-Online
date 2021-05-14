@@ -60,6 +60,7 @@ class Game:
         #Chat
         self.chat_box = ChatBox(self)
         self.chatting = False
+        self.showing_minimap = True
 
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
@@ -447,7 +448,8 @@ class Game:
         # if self.night:
             # self.render_fog()
         self.fog.draw_fog()
-        self.minimap.draw_minimap()
+        if self.showing_minimap:
+            self.minimap.draw_minimap()
         if self.inventory_is_activate:
             self.inventory.display_inventory()
         # HUD functions
@@ -481,6 +483,8 @@ class Game:
                         self.inventory_is_activate = not self.inventory_is_activate
                     if event.key == pg.K_z:
                         self.chat_box.zoom = not self.chat_box.zoom
+                    if event.key == pg.K_m:
+                        self.showing_minimap = not self.showing_minimap
             if event.type==pg.MOUSEBUTTONDOWN and event.button==3:
                 self.is_right_click=True
                 self.mouse_pos_at_clicked=pg.mouse.get_pos()
@@ -519,15 +523,15 @@ class Game:
 # create the game object
 g = Game()
 g.show_start_screen()
-try:
-    while True:
-        g.new()
-        while g.menu_is_running:
-            g.menu.display_menu()
-        g.create_mobs()
-        g.run()
-        g.show_go_screen()
-except Exception as E:
-    print(str(E))
-    Cnetwork.close_socket()
-    print("Closed!")
+# try:
+while True:
+    g.new()
+    while g.menu_is_running:
+        g.menu.display_menu()
+    g.create_mobs()
+    g.run()
+    g.show_go_screen()
+# except Exception as E:
+    # print(str(E))
+    # Cnetwork.close_socket()
+    # print("Closed!")

@@ -11,7 +11,7 @@ class ListMobs:
             self.data[id] = None
 
     def create_mob_list(self):
-        print(self.game.network.is_master)
+        # print(self.game.network.is_master)
         id = 0
         if self.game.network.is_master:
             for row, tiles in enumerate(self.game.map.data):

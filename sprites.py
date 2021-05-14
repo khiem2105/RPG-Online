@@ -289,6 +289,7 @@ class Mob(pg.sprite.Sprite):
         self.health = MOB_HEALTH
         self.speed = choice(MOB_SPEEDS)
         self.target = self.game.player
+        self.is_hidden = True
         print(f"Created mob at position: {self.pos.x}, {self.pos.y}")
 
     def avoid_mobs(self):
@@ -304,6 +305,13 @@ class Mob(pg.sprite.Sprite):
         target_dist_0 = (self.target.pos - self.pos)
         temp = list(self.game.network.list_id())
         l= len(temp)
+        if self.is_hidden:
+            try:
+                if self.game.fog.surface.get_at([int(i) for i in self.pos]) != NIGHT_COLOR:
+                    self.is_hidden = False
+            except Exception as E:
+                print("Error (update/Mob/Sprite) : ", str(E))
+                
         for i in range(l):
             target_dist.append(i)
             target_dist[i] = (self.game.other_player_list[temp[i]].pos -self.pos)
@@ -345,6 +353,12 @@ class Mob(pg.sprite.Sprite):
             # choice(self.game.zombie_hit_sounds).play()
             self.kill()
             self.game.screen.blit(self.game.splat, self.pos - vec(32, 32))
+            list_mob = self.game.list_mobs.list
+            for id_mob in list_mob.keys():
+                if self == list_mob[id_mob]:
+                    del list_mob[id_mob]
+                    del self.game.list_mobs.data[id_mob]
+                    break
 
     def draw_health(self):
         if self.health > 60:
