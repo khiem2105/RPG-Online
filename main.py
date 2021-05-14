@@ -15,6 +15,7 @@ from menu import *
 from inventory import *
 from chat_box import *
 from monster import ListMobs
+from fog import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -59,7 +60,6 @@ class Game:
         self.mouse_pos_at_clicked =[0,0]
 
 
-
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
         font = pg.font.Font(font_name, size)
         text_surface = font.render(text, True, color)
@@ -78,7 +78,6 @@ class Game:
         self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
         self.hud_font = path.join(img_folder, 'Impacted2.0.ttf')
         self.map = Map(path.join(self.map_folder, 'map3.txt'))
-        self.light_img = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
         self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()
         self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE, TILESIZE))
         self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()
@@ -96,12 +95,9 @@ class Game:
         self.item_images = {}
         for item in ITEM_IMAGES:
             self.item_images[item] = pg.image.load(path.join(img_folder, ITEM_IMAGES[item])).convert_alpha()
-        # lighting effect
-        self.fog = pg.Surface((WIDTH, HEIGHT))
-        self.fog.fill(NIGHT_COLOR)
-        self.light_mask = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
+        self.light_img = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
         # self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
-        self.light_rect = self.light_mask.get_rect()
+        self.light_rect = self.light_img.get_rect()
 
     def master_extend_map(self):
         N = 15
@@ -250,6 +246,11 @@ class Game:
         self.menu=Menu(self)
         self.menu_is_running=True
         # self.effects_sounds['level_start'].play()
+        # init fog 
+        self.init_fog()
+
+    def init_fog(self):
+        self.fog = Fog(self)
     
     def create_mobs(self):
         self.list_mobs = ListMobs(self)
@@ -408,8 +409,9 @@ class Game:
             for wall in self.walls:
                 pg.draw.rect(self.screen, CYAN, self.camera.apply_rect(wall.rect), 1)
         # pg.draw.rect(self.screen, WHITE, self.player.hit_rect, 2)
-        if self.night:
-            self.render_fog()
+        # if self.night:
+            # self.render_fog()
+        self.fog.draw_fog()
         if self.inventory_is_activate:
             self.inventory.display_inventory()
         # HUD functions
