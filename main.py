@@ -78,6 +78,7 @@ class Game:
         self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
         self.hud_font = path.join(img_folder, 'Impacted2.0.ttf')
         self.map = Map(path.join(self.map_folder, 'map3.txt'))
+        self.light_img = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
         self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()
         self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE, TILESIZE))
         self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()
@@ -99,7 +100,7 @@ class Game:
         self.fog = pg.Surface((WIDTH, HEIGHT))
         self.fog.fill(NIGHT_COLOR)
         self.light_mask = pg.image.load(path.join(img_folder, LIGHT_MASK)).convert_alpha()
-        self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
+        # self.light_mask = pg.transform.scale(self.light_mask, LIGHT_RADIUS)
         self.light_rect = self.light_mask.get_rect()
 
     def master_extend_map(self):
