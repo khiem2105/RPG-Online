@@ -14,6 +14,7 @@ ALEGREYA_ITALIC = path.join(fonts_folder, "alegreya_italic.ttf")
 WALL_IMG = 'tileGreen_39.png'
 
 # define some colors (R, G, B)
+BLUE = (0, 0, 255)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 DARKGREY = (40, 40, 40)
@@ -161,6 +162,6 @@ TIME_GAPS = 0.1
 MINIMAP_SCALE = 300
 
 # Fog 
-NIGHT_COLOR = (50, 50, 50)
-LIGHT_RADIUS = 800
+NIGHT_COLOR = (30, 30, 30)
+LIGHT_RADIUS = 300
 LIGHT_MASK = "light_medium.png"

@@ -60,7 +60,7 @@ class Network:
     def add_items_to_data(self,items_data):
         self.data_frame += "Items:"+" "
         for item in items_data:
-            self.data_frame += (" ").join(["x",str(item["x"]),"y",str(item["y"]),"type",str(item["type"])])+"!"
+            self.data_frame += (",").join(["x:",str(item["x"]),"y:",str(item["y"]),"type:",str(item["type"])])+"!"
         self.data_frame+= ";"
 
     def sync_resize_map(self, direction, data):
@@ -70,8 +70,6 @@ class Network:
         if self.DEBUG : print(self.data_frame)
         
     def run_master(self):
-        # # test
-        # Cnetwork.master_send_to_peer_with_id("con cac nhe", 0)
 
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
@@ -178,11 +176,25 @@ class Network:
             #print(f"Id: {id}, Pos: {pos}, Rot: {rot}, Hp: {hp}")
             self.game.player.updateZombie(id, pos, rot, hp)
     
-    def analyse_items_data(self,data):
-        pass
+    def analyse_items_data(self,items_data):
+        for item in items_data :
+            if item != "":
+                for attribute in item.split(","):
+                    value = attribute.split(":")
+                    if value[0]=="x":
+                        x =int(value[1])
+                    elif value[0]=="y":
+                        y =int(value[1])
+                    elif value[0]=="type":
+                        type =str(value[1])
+            self.game.create_item(x,y,type)
+
 
     def analyse_data_received(self, data_received, id_player):
         if data_received != None and data_received != "":
+            print("-------------------------------------")
+            print(data_received)
+            print("-------------------------------------")
             data_received = data_received.split(';')
             for data in data_received:
                 data = data.split(" ")
@@ -228,6 +240,9 @@ class Network:
                     print("-------------------------------------")
                     print("-------------------------------------")
                     print(data[1])
+                    print("-------------------------------------")
+                    print("-------------------------------------")
+                    print("-------------------------------------")
                     self.analyse_items_data(data[1])
 
 

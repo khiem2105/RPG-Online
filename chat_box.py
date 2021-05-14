@@ -1,5 +1,7 @@
 import pygame
 from pygame.locals import *
+from InterfacePackage import Text,TextEntry,Button
+from settings import *
 import Cnetwork
 
 class ChatBox:
@@ -19,10 +21,13 @@ class ChatBox:
         # Position beginning to print the log
         self.y_start = self.game.screen.get_height() - 32 - 32
         self.zoom = False
+        self.chat_button = Button(self.game,60,HEIGHT - self.rect.height,"Chat",ENCHANT_FONT,BLACK_HEX,30)
+        self.chat_button_down = False
 
     def update(self):
         self.input_box.update()
         self.rect = self.surface.get_rect()
+        #self.rect.bottomleft = (0, self.game.screen.get_height())
 
     def draw(self):
         if self.zoom:
@@ -31,14 +36,25 @@ class ChatBox:
         else:
             self.surface = pygame.Surface((self.width, self.height)).convert()
         self.surface.fill((200, 200, 200))
-        self.rect.bottomleft = (0, self.game.screen.get_height())
+
+        if self.chat_button_down:
+            self.rect.bottomleft = (0, self.game.screen.get_height()+ self.rect.height)
+            self.chat_button = Button(self.game,60,HEIGHT - 25,"Chat",ENCHANT_FONT,BLACK_HEX,30)
+        else:
+            self.rect.bottomleft = (0, self.game.screen.get_height())
+            self.chat_button = Button(self.game,60,HEIGHT - 25 - self.rect.height,"Chat",ENCHANT_FONT,BLACK_HEX,30)
         self.game.screen.blit(self.surface, self.rect,
                             special_flags=BLEND_MULT)
         self.print_log()
         self.input_box.draw(self.game.screen)
 
+        self.chat_button.display_button()
+        self.chat_button.color_on_mouse(WHITE_HEX)
+
     def handle_event(self, event):
         active = self.input_box.handle_event(event)
+        if self.chat_button.is_clicked(event):
+            self.chat_button_down = not self.chat_button_down
         return active
 
     def print_log(self):
@@ -92,9 +108,11 @@ class InputBox:
 
         self.x = x
         self.y = y
+        print(self.y)
+        print(self.x, self.y)
         self.width = self.chat_box.rect.width
         self.height = 32
-        self.rect = pygame.Rect(x, y, self.width, self.height)
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
         self.color = self.COLOR_INACTIVE
         self.text = text
@@ -143,7 +161,7 @@ class InputBox:
 
     def update(self):
         self.width = self.chat_box.rect.width
-        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.rect = pygame.Rect(self.chat_box.rect.bottomleft[0], self.chat_box.rect.bottomleft[1]-32, self.width, self.height)
 
     def draw(self, screen):
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+10))
