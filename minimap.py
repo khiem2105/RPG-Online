@@ -12,8 +12,8 @@ class Minimap:
         self.TOP_LEFT_X = WIDTH - MINIMAP_SCALE
         self.TOP_LEFT_Y = HEIGHT - MINIMAP_SCALE
         self.surface = pygame.Surface((MINIMAP_SCALE,  MINIMAP_SCALE))
-        self.surface.set_alpha(50)                # alpha level
-        self.surface.fill(BLUE)
+        # self.surface.convert_alpha()
+        # self.surface.set_alpha(150)                # alpha level
         self.rect = self.surface.get_rect()
         self.rect.bottomright = self.screen.get_rect().bottomright
         self.create_surface()
@@ -31,13 +31,29 @@ class Minimap:
                     color = BLACK
                 pygame.draw.rect(self.extra_surface, color, (RATE*col, RATE*row, RATE, RATE))
 
+    def calculate(self, x, y, offset_x, offset_y):
+        pos_x, pos_y = self.player.pos
+        pos_x = pos_x / TILESIZE * self.RATE + offset_x
+        pos_y = pos_y / TILESIZE * self.RATE + offset_y
+        return pos_x, pos_y
 
     def draw_minimap(self):
         offset_x =  self.game.camera.camera.left * WIDTH / self.game.map.width / 1.5
         offset_y =  self.game.camera.camera.top * HEIGHT / self.game.map.height / 1
         self.surface.blit(self.extra_surface, (offset_x, offset_y) )
         pos_x, pos_y = self.player.pos
-        pos_x = pos_x / TILESIZE * self.RATE + offset_x
-        pos_y = pos_y / TILESIZE * self.RATE + offset_y
-        pygame.draw.rect(self.surface, RED, (pos_x, pos_y, 10, 10))
+        pos_x, pos_y = self.calculate(pos_x, pos_y, offset_x, offset_y)
+        pygame.draw.circle(self.surface, RED, (pos_x, pos_y), 10)
+        # for other in self.game.other_player_list.values():
+            # x, y = other.pos
+            # x, y = self.calculate(x, y , offset_x, offset_y)
+            # pygame.draw.circle(self.surface, BLUE, (x, y), 10)
+
+        # for mob in self.game.list_mobs.list.values():
+            # x, y = mob.pos
+            # x, y = self.calculate(x, y , offset_x, offset_y)
+            # pygame.draw.circle(self.surface, YELLOW, (x, y) , 10)
         self.screen.blit(self.surface, self.rect)
+
+
+
