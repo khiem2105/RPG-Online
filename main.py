@@ -16,6 +16,7 @@ from inventory import *
 from chat_box import *
 from monster import ListMobs
 from fog import *
+from minimap import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -78,7 +79,7 @@ class Game:
         self.map_folder = path.join(game_folder, 'maps')
         self.title_font = path.join(img_folder, 'ZOMBIE.TTF')
         self.hud_font = path.join(img_folder, 'Impacted2.0.ttf')
-        self.map = Map(path.join(self.map_folder, 'map3.txt'))
+        self.map = Map(path.join(self.map_folder, 'map4.txt'))
         self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()
         self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE, TILESIZE))
         self.dim_screen = pg.Surface(self.screen.get_size()).convert_alpha()
@@ -274,10 +275,11 @@ class Game:
         self.menu_is_running=True
         # self.effects_sounds['level_start'].play()
         # init fog 
-        self.init_fog()
+        self.init_fog_and_minimap()
 
-    def init_fog(self):
+    def init_fog_and_minimap(self):
         self.fog = Fog(self)
+        self.minimap = Minimap(self)
     
     def create_mobs(self):
         self.list_mobs = ListMobs(self)
@@ -445,6 +447,7 @@ class Game:
         # if self.night:
             # self.render_fog()
         self.fog.draw_fog()
+        self.minimap.draw_minimap()
         if self.inventory_is_activate:
             self.inventory.display_inventory()
         # HUD functions
