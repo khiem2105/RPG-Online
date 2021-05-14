@@ -50,13 +50,14 @@ class Game:
         self.load_data()
         # Option unlimited map, re-do later
         self.do_unlimited_map = False
-        self.chat_box = ChatBox(self)
-        self.chatting = False
         self.nb_zombies = 0
         # mouse click
         self.is_right_click=False
         self.is_left_click=False
         self.mouse_pos_at_clicked =[0,0]
+        #Chat
+        self.chat_box = ChatBox(self)
+        self.chatting = False
 
 
 
