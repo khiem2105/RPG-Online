@@ -53,7 +53,10 @@ class Network:
     
     def add_message_to_data(self, mess):  #For chatting
         self.data_frame += (" ").join(["Chat:", mess]) + ";"
-        
+    
+    def add_item_to_data(self,x,y,type):
+        self.data_frame += (" ").join(["Item:",str(x),str(y),str(type)])+";"
+
     def sync_resize_map(self, direction, data):
         # Sync unlimited map
         # Package : Extend_map <Direction:Right/Bottom> <Row> <Col> <X*Y numbers: Wall or Not>
@@ -61,6 +64,8 @@ class Network:
         if self.DEBUG : print(self.data_frame)
         
     def run_master(self):
+        # test
+        Cnetwork.master_send_to_peer_with_id("con cac nhe", 0)
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
         # Check if data_frame = NULL => return (not send)
@@ -289,51 +294,3 @@ class Network:
 
     def receive_mobs_from_master(self):
         pass
-
-    def trash(self):
-        first_rev = True
-        test = True
-        #  _thread.start_new_thread(peer, ())
-        while True:
-            #  Message welcome : 
-            #  If first : "First;myId,myPort;"
-            #  Else => new connection of others : 
-            #       "newId,newIp,newPort;newId2,newIp2,newPort2;"
-            try :
-                welcome = Cnetwork.peer_receive_from_master()
-                print("[Python] Data raw :", welcome)
-                welcome = welcome.split(";")
-                if welcome != None:
-                    if welcome[0] == "First":
-                        myId, myPort = welcome[1].split(",")
-                        # set id
-                        Cnetwork.set_my_id(int(myId))
-                        print("[Python] My id: ", myId)
-                        print("[Python] My port: ", myPort)
-                        myPort = int(myPort) + 1 
-                        # Bind a socket data
-                        Cnetwork.peer_create_bind_listen_and_accept(myPort)
-                        Cnetwork.normal_peer_start_loop()
-                        for i in range(2, len(welcome)):
-                            if (welcome[i] != ''):
-                                newId, newIp, newPort = welcome[i].split(",")
-                                print("[Python] New connection: ", newId, newIp, newPort)
-                                newId = int(newId)  
-                                newPort = int(newPort) + 1 
-                                Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
-                                self.add_new_player(newId)
-                        # Send first message :
-                        Cnetwork.peer_send_all("THIS IS PEER!")
-
-                    elif welcome[0] == "Disconnected":
-                        print("[Python] Player " + welcome[1] + " was disconnected!")
-                    else:
-                        for i in range(len(welcome)):
-                            if (welcome[i] != ''):
-                                newId, newIp, newPort = welcome[i].split(",")
-                                print("[Python] New connection: ", newId, newIp, newPort)
-            except Exception as E:
-                print(str(E))
-            #  print(Cnetwork.peer_get_message_from_player(1) )
-            Cnetwork.peer_send_all("THIS IS PEER")
-            time.sleep(2)
