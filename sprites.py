@@ -401,6 +401,12 @@ class CloneMob(pg.sprite.Sprite):
         self.rect.center = pos
         if self.health <= 0:
             self.kill()
+            list_mob = self.game.list_mobs.list
+            for id_mob in list_mob.keys():
+                if self == list_mob[id_mob]:
+                    del list_mob[id_mob]
+                    del self.game.list_mobs.data[id_mob]
+                    break
 
     def update(self):
         # target_dist =[]

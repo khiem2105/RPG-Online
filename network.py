@@ -94,12 +94,17 @@ class Network:
                 elif data[0] == "Disconnected":
                     id_player = int(data[1])
                     if self.DEBUG : print("Player", id_player, "disconnected! Deleted from the list...")
-                    print(self.game.other_player_list[id_player].name)
+                    player = self.game.other_player_list[id_player]
+                    # Store data 
+                    # @LONG : have to insert inventory
+                    self.data_store[player.player_name] = {
+                            "Pos" : player.pos,
+                            "Hp" : player.hp
+                            }
                     self.game.other_player_list[id_player].kill()
                     self.game.other_player_list.pop(id_player, None)
-                    # self.data_store['']
         except Exception as E:
-            print(str(E))
+            print(str(E), "first try in : method master_get_data/network.py")
 
         # Get data from other players => to update status
         # To do : add a loop to get all peers
@@ -115,7 +120,7 @@ class Network:
                         # key = data[1]
                         # self.game.other_player_list[i].updateKey(key)
         except Exception as E:
-            print(str(E))
+            print(str(E), "second try in : method master_get_data/network.py")
 
     def init_peer(self):
         print("[Python] you are the normal peer! with port "+str(self.game.port))
@@ -241,7 +246,7 @@ class Network:
                 if data != "" and data is not None:
                     print("Works :", data)
         except Exception as E:
-            print(str(E))
+            print(str(E), "! First try in peer_get_data/network.py")
 
         # Get data from peer_buffer to know :
         # 1. if someone connected 
@@ -262,7 +267,7 @@ class Network:
                 # if data[0] == "Disconnected":
                     # player_id = int(data[1])
         except Exception as E:
-            print(str(E))
+            print(str(E), "! Second try in peer_get_data/network.py")
            
     def receive_first_message(self):
         welcome = Cnetwork.peer_receive_from_master()
@@ -289,8 +294,8 @@ class Network:
                         newPort = int(newPort) + 1 
                         Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
                         self.add_new_player(newId, True)
-                    except:
-                        pass
+                    except Exception as E:
+                        print(str(E), "! Func receive_first_message/network")
             self.first_message = False
 
     def receive_mobs_from_master(self):
