@@ -115,9 +115,6 @@ MUZZLE_FLASHES = ['whitePuff15.png', 'whitePuff16.png', 'whitePuff17.png',
 SPLAT = 'splat green.png'
 FLASH_DURATION = 50
 DAMAGE_ALPHA = [i for i in range(0, 255, 55)]
-NIGHT_COLOR = (20, 20, 20)
-LIGHT_RADIUS = (500, 500)
-LIGHT_MASK = "light_350_soft.png"
 
 # Layers
 WALL_LAYER = 1
@@ -159,3 +156,11 @@ EFFECTS_SOUNDS = {'level_start': 'level_start.wav',
 
 #Send data
 TIME_GAPS = 0.1
+
+# Minimap 
+MINIMAP_SCALE = 300
+
+# Fog 
+NIGHT_COLOR = (50, 50, 50)
+LIGHT_RADIUS = 800
+LIGHT_MASK = "light_medium.png"
