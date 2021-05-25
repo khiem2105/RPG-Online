@@ -94,7 +94,7 @@ class Network:
 								newId, newIp, newPort = welcome[i].split(",")
 								print("[Python] New connection: ", newId, newIp, newPort)
 			except Exception as E:
-				print(str(E))
+				print(str(E), "function init_peer/network.py")
 			#  print(Cnetwork.peer_get_message_from_player(1) )
 			Cnetwork.peer_send_all("THIS IS PEER")
 			time.sleep(2)
