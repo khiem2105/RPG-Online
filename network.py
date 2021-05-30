@@ -3,6 +3,7 @@ import Cnetwork
 import time
 import _thread
 from sprites import OtherPlayer
+from key import *
 # Send to all others peer:
 # 1. Master : master_send_all(message)
 # 2. Peer   : peer_send_all(message)
@@ -13,7 +14,7 @@ from sprites import OtherPlayer
 
 class Network:
     def __init__(self, game):
-        self.DEBUG = True
+        self.DEBUG = False
         self.game = game
         self.player_name = input("Your name :")
         self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 
@@ -39,6 +40,9 @@ class Network:
         Cnetwork.create_and_bind(self.game.port)
         Cnetwork.listen_and_accept()
         Cnetwork.master_peer_start_loop()
+
+    def add_puclic_key_to_data(self):
+        self.data_frame += (" ").join(["Public_key:", str(self.game.key_pair.pub_key.value1), str(self.game.key_pair.pub_key.value2)]) + ";"
 
     def add_pos_to_data(self, x, y, rot):
         self.data_frame  += (" ").join(["Pos:", str(x), str(y), str(rot)]) + ";"
@@ -75,7 +79,7 @@ class Network:
         message = self.data_frame
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.master_send_all(message)
-        #if self.DEBUG: print("Master sent to all:" + message)
+        if self.DEBUG: print("Master sent to all:" + message)
         # reset message
         self.data_frame = ""
 	
@@ -141,7 +145,7 @@ class Network:
         # add name
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.peer_send_all(message)
-        #if self.DEBUG: print("Peer sent to all : " , message)
+        if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
         self.data_frame = ""
 
@@ -153,7 +157,7 @@ class Network:
         # add name
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.peer_send_data_to_master(message)
-        #if self.DEBUG: print("Peer sent to all : " , message)
+        # if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
         self.data_frame = ""
 
@@ -220,6 +224,11 @@ class Network:
                         extend_data.append(line)
                     if self.DEBUG: print(extend_data)
                     self.game.peer_extend_map(data[1], 15, extend_data)
+                elif data[0] == "Public_key:":
+                    # print("Update public key list...")
+                    # print(int(data[1]), int(data[2]))
+                    if not self.game.pub_key_list[id_player]:
+                        self.game.pub_key_list[id_player] = Key(int(data[1]), int(data[2]))
 
     #  PEER Get data from other peers
     def peer_get_data(self):

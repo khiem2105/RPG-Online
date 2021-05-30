@@ -15,8 +15,10 @@ class Key(ctypes.Structure):
     _fields_ = [('value1', ctypes.c_int64), ('value2', ctypes.c_int64)]
 
     def __init__(self, value1, value2):
-        initKey = wrap_function("initKey", Key, [ctypes.c_int64, ctypes.c_int64])
-        self = initKey(value1, value2)
+        # initKey = wrap_function("initKey", Key, [ctypes.c_int64, ctypes.c_int64])
+        # self = initKey(value1, value2)
+        self.value1 = value1
+        self.value2 = value2
 
     def __repr__(self):
         return f"n: {self.value1}, other value: {self.value2}"

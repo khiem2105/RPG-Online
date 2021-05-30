@@ -17,6 +17,8 @@ from chat_box import *
 from monster import ListMobs
 from fog import *
 from minimap import *
+from collections import defaultdict
+from key import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -61,6 +63,7 @@ class Game:
         self.chat_box = ChatBox(self)
         self.chatting = False
         self.showing_minimap = True
+        self.pub_key_list = defaultdict(lambda: None)
 
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
@@ -277,7 +280,8 @@ class Game:
         # self.effects_sounds['level_start'].play()
         # init fog 
         self.init_fog_and_minimap()
-
+        self.key_pair = KeyPair()
+    
     def init_fog_and_minimap(self):
         self.fog = Fog(self)
         self.minimap = Minimap(self)
@@ -304,6 +308,7 @@ class Game:
             if not self.network.is_master:
                 if self.network.first_message:
                     self.network.receive_first_message()
+            self.network.add_puclic_key_to_data()
 
     def quit(self):
         pg.quit()
@@ -369,6 +374,7 @@ class Game:
                     self.player.shoes = hit.type
                 else:
                     self.player.shoes = hit.type
+
             
         # mobs hit player
         # hits_1 = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
@@ -407,6 +413,15 @@ class Game:
 
         self.chat_box.update()
         self.list_mobs.update()
+
+        # for id in self.pub_key_list.keys():
+        #     if self.pub_key_list[id]:
+        #         print(f"Id {id}: {self.pub_key_list[id].value1}, {self.pub_key_list[id].value2}")
+        # for id, key in self.pub_key_list.items():
+        #     print(f"Id {id}: {key}")
+        # print("Updating...")
+        # print(self.pub_key_list)
+        # print(self.pub_key_list.keys())
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
