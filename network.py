@@ -3,6 +3,7 @@ import Cnetwork
 import time
 import _thread
 from sprites import OtherPlayer
+from rsa import *
 from key import *
 # Send to all others peer:
 # 1. Master : master_send_all(message)
@@ -14,7 +15,7 @@ from key import *
 
 class Network:
     def __init__(self, game):
-        self.DEBUG = False
+        self.DEBUG = True
         self.game = game
         self.player_name = input("Your name :")
         self.list_id = self.game.other_player_list.keys #use by calling self.list_id() 
@@ -79,7 +80,7 @@ class Network:
         message = self.data_frame
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.master_send_all(message)
-        if self.DEBUG: print("Master sent to all:" + message)
+        # if self.DEBUG: print("Master sent to all:" + message)
         # reset message
         self.data_frame = ""
 	
@@ -117,7 +118,7 @@ class Network:
             for i in self.list_id():
                 data = Cnetwork.master_get_message_from_player(i)
                 if data != None:
-                    #if self.DEBUG: print("[Python] Master received data from player ",i ," : ", data)
+                    # if self.DEBUG: print("[Python] Master received data from player ",i ," : ", data)
                     self.analyse_data_received(data, i)
                     # data = data.split(';')
                     # if data[0] == "Data":
@@ -145,7 +146,7 @@ class Network:
         # add name
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.peer_send_all(message)
-        if self.DEBUG: print("Peer sent to all : " , message)
+        # if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
         self.data_frame = ""
 
@@ -181,9 +182,27 @@ class Network:
                         hp = float(value[1])
             #print(f"Id: {id}, Pos: {pos}, Rot: {rot}, Hp: {hp}")
             self.game.player.updateZombie(id, pos, rot, hp)
+
+    def send_chat_message_to_all(self, message):
+        for id in self.list_id():
+            print(f"{id}: {self.game.pub_key_list}")
+            encoded_message = encode(message, self.game.pub_key_list[id])
+            print(encoded_message)
+            encoded_message = "Chat: " + encoded_message + ";"
+            # print(encoded_message)
+            if self.is_master:
+                Cnetwork.master_send_to_peer_with_id(encoded_message, id)
+            else:
+                Cnetwork.peer_send_to_peer_with_id(encoded_message, id)
+            encoded_message = ""
+
+
+    def send_private_chat_message(self, message, player_name):
+        pass
         
     def analyse_data_received(self, data_received, id_player):
         if data_received != None and data_received != "":
+            # if self.DEBUG: print(data_received)
             data_received = data_received.split(';')
             for data in data_received:
                 data = data.split(" ")
@@ -204,6 +223,9 @@ class Network:
                     self.analyse_zombie_data(zombie_data)
                     pass
                 elif data[0] == "Chat:":
+                    if self.DEBUG:
+                        for i in range(1, len(data)):
+                            print(data[i])
                     mess = "@"+self.game.other_player_list[id_player].player_name + ": "
                     for i in range(1, len(data)):
                         mess = mess + data[i] + " "

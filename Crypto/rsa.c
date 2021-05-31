@@ -144,6 +144,7 @@ char* encrypt(char* msg, key Pub)
 		i++;
 	}
 	char *str = (char*)malloc(sizeof(char) * 8096);
+	memset(str, '\0', 8096*sizeof(char));
 	char str2[8096];
 	int lenS; 
 	for(i=0;buf[i]!=0;i++)

@@ -19,6 +19,7 @@ from fog import *
 from minimap import *
 from collections import defaultdict
 from key import *
+from display_info import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -475,6 +476,12 @@ class Game:
             self.screen.blit(self.dim_screen, (0, 0))
             self.draw_text("Paused", self.title_font, 105, RED, WIDTH / 2, HEIGHT / 2, align="center")
         self.chat_box.draw()
+        for other_player in self.other_player_list.values():
+            if detect_mouse_over_player(other_player, self.camera):
+                print("Mouse on player")
+                player_info_display = InfoDisplay(self, other_player)
+                player_info_display.draw()
+        
         pg.display.flip()
 
     def events(self):

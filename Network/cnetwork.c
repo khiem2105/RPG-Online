@@ -881,12 +881,29 @@ static PyObject* master_send_to_peer_with_id(PyObject* self, PyObject* args) {
 // -------------------------------------------------------------------------
 // -------------------------------------------------------------------------
 
+// Peer send message to another peer with specific ID
+void Cpeer_send_to_peer_with_id(char* message, int id) {
+	for(int i = 0; i < Peer.max_peer; i++) {
+		if(Peer.peer_socket[i].fd != 0 && Peer.peer_socket[i].id == id)
+			Csend_message(Peer.peer_socket[i].fd, message);
+	}
+}
+
+static PyObject* peer_send_to_peer_with_id(PyObject* self, PyObject* args) {
+	char* message, id;
+	if(!PyArg_ParseTuple(args, "si", &message, &id))
+		return NULL;
+	printf("Send %s to player with id %d", message, id);
+	Cpeer_send_to_peer_with_id(message, id);
+	return Py_BuildValue("s", "Success");
+}
 
 // ------------------ Build Module --------------------------
 // ----------------------------------------------------------
 // If a method hasn't arguments => you must add (PyCFunction)
 static PyMethodDef networkMethods[] = { // (PyCFunction)
     {"master_send_to_peer_with_id", master_send_to_peer_with_id, METH_VARARGS, "Master send message to a player specific by using id"},
+	{"peer_send_to_peer_with_id", peer_send_to_peer_with_id, METH_VARARGS, "Player send message to an another player by using id"},
     {"peer_receive_from_old_peer", peer_receive_from_old_peer, METH_VARARGS, "Peer receive data from old peer by using recv() non-blocking"},
     {"peer_get_to_know_new_connection", (PyCFunction)peer_get_to_know_new_connection, METH_NOARGS, "Peer get to know new connection by using data saved in peer_buffer"},
     {"master_get_to_know_new_connection", (PyCFunction)master_get_to_know_new_connection, METH_NOARGS, "Master get to know new connection by using data saved in master_buffer"},

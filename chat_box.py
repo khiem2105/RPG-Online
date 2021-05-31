@@ -4,6 +4,7 @@ from pygame.locals import *
 from InterfacePackage.Button import *
 from settings import *
 import Cnetwork
+from rsa import *
 
 class ChatBox:
     def __init__(self, game):
@@ -135,7 +136,15 @@ class InputBox:
                 if event.key == K_RETURN:
                     self.chat_box.write_log([self.text,0])
                     if (self.text != ""):
+                        #send message here
                         self.chat_box.game.network.add_message_to_data(self.text)
+                        # print(self.text.encode('utf-8'))
+                        # encoded_message = encode(self.text, self.chat_box.game.key_pair.pub_key)
+                        # print(encoded_message)
+                        # self.chat_box.game.network.send_chat_message_to_all(self.text)
+                        # decoded_message = decode(encoded_message, self.chat_box.game.key_pair.priv_key)
+                        # print(decoded_message)
+                        # print(encoded_message)
                     self.text = ''
                     self.camera = 0
                 elif event.key == K_BACKSPACE:
