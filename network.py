@@ -61,7 +61,7 @@ class Network:
     def add_items_to_data(self,items_data):
         self.data_frame += "Items:"+" "
         for item in items_data:
-            self.data_frame += (",").join(["x:",str(item["x"]),"y:",str(item["y"]),"type:",str(item["type"])])+"!"
+            self.data_frame += (",").join(["x:"+str(item["x"]),"y:"+str(item["y"]),"type:"+str(item["type"])])+"!"
         self.data_frame+= ";"
 
     def sync_resize_map(self, direction, data):
@@ -180,9 +180,9 @@ class Network:
             self.game.player.updateZombie(id, pos, rot, hp)
     
     def analyse_items_data(self,items_data):
-        for item in items_data :
+        for item in items_data.split("!") :
             if item != "":
-                for attribute in item.split(","):
+                for attribute in item.split(","):   
                     value = attribute.split(":")
                     if value[0]=="x":
                         x =int(value[1])
@@ -195,9 +195,9 @@ class Network:
 
     def analyse_data_received(self, data_received, id_player):
         if data_received != None and data_received != "":
-            print("-------------------------------------")
-            print(data_received)
-            print("-------------------------------------")
+            # print("-------------------------------------")
+            # print(data_received)
+            # print("-------------------------------------")
             data_received = data_received.split(';')
             for data in data_received:
                 data = data.split(" ")
@@ -301,6 +301,7 @@ class Network:
     def receive_first_message(self):
         welcome = Cnetwork.peer_receive_from_master()
         print("[Python] Data raw :", welcome)
+        self.analyse_data_received(welcome,-1)
         welcome = welcome.split(";")
         if welcome != None and welcome[0] == "First":
             self.myId, self.myPort = welcome[1].split(",")

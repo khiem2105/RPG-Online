@@ -542,6 +542,7 @@ class Item(pg.sprite.Sprite):
         self.tween = tween.easeInOutSine
         self.step = 0
         self.dir = 1
+        self.active = True
 
     def update(self):
         # bobbing motion
@@ -551,3 +552,6 @@ class Item(pg.sprite.Sprite):
         if self.step > BOB_RANGE:
             self.step = 0
             self.dir *= -1
+
+        if not self.active:
+            self.kill

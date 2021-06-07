@@ -330,20 +330,20 @@ class Game:
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
             if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
-                print(hit)
+                
                 hit.kill()
                 # self.effects_sounds['health_up'].play()
                 self.player.add_health(HEALTH_PACK_AMOUNT)
             #pickup items
             if hit.type in WEAPONS_NAME and self.player.number_of_items<14:
-                print(hit)
+                
                 hit.kill()
                 # self.effects_sounds['gun_pickup'].play()
                 self.player.back_pack[self.player.number_of_items] = self.player.weapon
                 self.player.number_of_items +=1
                 self.player.weapon = hit.type
             if hit.type in HELMETS_NAME and self.player.number_of_items<14:
-                print(hit)
+                
                 hit.kill()
                 if self.player.helmet is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.helmet
@@ -352,7 +352,7 @@ class Game:
                 else:
                     self.player.helmet = hit.type
             if hit.type in ARMORS_NAME and self.player.number_of_items<14:
-                print(hit)
+              
                 hit.kill()
                 if self.player.armor is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.armor
@@ -361,7 +361,7 @@ class Game:
                 else:
                     self.player.armor = hit.type
             if hit.type in PANTS_NAME and self.player.number_of_items<14:
-                print(hit)
+              
                 hit.kill()
                 if self.player.pants is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.pants
@@ -370,7 +370,7 @@ class Game:
                 else:
                     self.player.pants = hit.type
             if hit.type in SHOES_NAME and self.player.number_of_items<14:
-                print(hit)
+       
                 hit.kill()
                 if self.player.shoes is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.shoes
