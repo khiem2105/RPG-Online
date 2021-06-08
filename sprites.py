@@ -401,6 +401,12 @@ class CloneMob(pg.sprite.Sprite):
         self.rect.center = pos
         if self.health <= 0:
             self.kill()
+            list_mob = self.game.list_mobs.list
+            for id_mob in list_mob.keys():
+                if self == list_mob[id_mob]:
+                    del list_mob[id_mob]
+                    del self.game.list_mobs.data[id_mob]
+                    break
 
     def update(self):
         # target_dist =[]
@@ -529,7 +535,7 @@ class MuzzleFlash(pg.sprite.Sprite):
             self.kill()
 
 class Item(pg.sprite.Sprite):
-    def __init__(self, game, pos, type):
+    def __init__(self, game, pos, type, id):
         self._layer = ITEMS_LAYER
         self.groups = game.all_sprites, game.items
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -543,6 +549,7 @@ class Item(pg.sprite.Sprite):
         self.step = 0
         self.dir = 1
         self.active = True
+        self.id = id 
 
     def update(self):
         # bobbing motion

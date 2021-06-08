@@ -4,3 +4,6 @@ run :
 Cnetwork: 
 	cd Network && make
 
+Crypto:
+	cd Crypto && make
+

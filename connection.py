@@ -55,5 +55,5 @@ class Connection:
 								newId, newIp, newPort = welcome[i].split(",")
 								print("[Python] New connection: ", newId, newIp, newPort)
 			except Exception as E:
-				print(str(E))
+				print(str(E), "line 58 - connection.py")
 			time.sleep(0.5)

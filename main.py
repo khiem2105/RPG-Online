@@ -17,6 +17,9 @@ from chat_box import *
 from monster import ListMobs
 from fog import *
 from minimap import *
+from collections import defaultdict
+from key import *
+from display_info import *
 
 # HUD functions
 def draw_player_health(surf, x, y, pct):
@@ -63,6 +66,7 @@ class Game:
         self.chat_box = ChatBox(self)
         self.chatting = False
         self.showing_minimap = True
+        self.pub_key_list = defaultdict(lambda: None)
 
 
     def draw_text(self, text, font_name, size, color, x, y, align="topleft"):
@@ -217,7 +221,7 @@ class Game:
         #     if tile_object.name in ['health', 'shotgun']:
         #         Item(self, obj_center, tile_object.name)
         
-
+        item_id =0
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
                 if tile == '1':
@@ -236,32 +240,41 @@ class Game:
                     # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
                     self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
                                             "y":int(row*TILESIZE+TILESIZE/2),
-                                            "type":gun}) 
+                                            "type":gun,
+                                            "id":item_id})
+                    item_id += 1 
                 if tile =="H":
                     helmet=choice(HELMETS_NAME)
                     # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], helmet)
                     self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
                                             "y":int(row*TILESIZE+TILESIZE/2),
-                                            "type":helmet}) 
+                                            "type":helmet,
+                                            "id":item_id})
+                    item_id += 1 
                 if tile =="A":
                     armor=choice(ARMORS_NAME)
                     # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], armor)
                     self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
                                             "y":int(row*TILESIZE+TILESIZE/2),
-                                            "type":armor}) 
+                                            "type":armor,
+                                            "id":item_id})
+                    item_id += 1                         
                 if tile =="L":
                     pants=choice(PANTS_NAME)
                     # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], pants)
                     self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
                                             "y":int(row*TILESIZE+TILESIZE/2),
-                                            "type":pants}) 
+                                            "type":pants,
+                                            "id":item_id})
+                    item_id += 1 
                 if tile =="S":
                     shoes=choice(SHOES_NAME)
                     # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], shoes)
                     self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
                                             "y":int(row*TILESIZE+TILESIZE/2),
-                                            "type":shoes}) 
-    
+                                            "type":shoes,
+                                            "id":item_id})
+                    item_id += 1 
         self.camera = Camera(self.map.width, self.map.height)
         self.inventory = Inventory(self)
         self.draw_debug = False
@@ -274,7 +287,8 @@ class Game:
         # self.effects_sounds['level_start'].play()
         # init fog 
         self.init_fog_and_minimap()
-
+        self.key_pair = KeyPair()
+    
     def init_fog_and_minimap(self):
         self.fog = Fog(self)
         self.minimap = Minimap(self)
@@ -282,14 +296,18 @@ class Game:
     def init_items(self):
         if self.network.is_master:
             for item in self.items_data:
-                Item(self, [int(item["x"]),int(item["y"])], item['type'])
-        else:
-            pass
-            # peer
+                Item(self, [int(item["x"]),int(item["y"])], item['type'], item['id'])
+        
 
-    def create_item(self,x,y,type):
+    def create_item(self,x,y,type,id):
         if not self.network.is_master:
-            Item(self, [int(x),int(y)], type)
+            Item(self, [int(x),int(y)], type, id)
+
+    def remove_item(self,id):
+        for item in self.items:
+            if item.id == id:
+                item.activate = False
+
 
     def create_mobs(self):
         self.list_mobs = ListMobs(self)
@@ -313,6 +331,7 @@ class Game:
             if not self.network.is_master:
                 if self.network.first_message:
                     self.network.receive_first_message()
+            self.network.add_puclic_key_to_data()
 
     def quit(self):
         pg.quit()
@@ -327,6 +346,7 @@ class Game:
         #     self.playing = False
 
         # player hits items
+
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
             if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
@@ -336,14 +356,15 @@ class Game:
                 self.player.add_health(HEALTH_PACK_AMOUNT)
             #pickup items
             if hit.type in WEAPONS_NAME and self.player.number_of_items<14:
-                
+                self.network.add_remove_item_to_data(hit.id)
                 hit.kill()
                 # self.effects_sounds['gun_pickup'].play()
                 self.player.back_pack[self.player.number_of_items] = self.player.weapon
                 self.player.number_of_items +=1
                 self.player.weapon = hit.type
+
             if hit.type in HELMETS_NAME and self.player.number_of_items<14:
-                
+                self.network.add_remove_item_to_data(hit.id)
                 hit.kill()
                 if self.player.helmet is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.helmet
@@ -351,8 +372,9 @@ class Game:
                     self.player.helmet = hit.type
                 else:
                     self.player.helmet = hit.type
+
             if hit.type in ARMORS_NAME and self.player.number_of_items<14:
-              
+                self.network.add_remove_item_to_data(hit.id)
                 hit.kill()
                 if self.player.armor is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.armor
@@ -360,8 +382,9 @@ class Game:
                     self.player.armor = hit.type
                 else:
                     self.player.armor = hit.type
+
             if hit.type in PANTS_NAME and self.player.number_of_items<14:
-              
+                self.network.add_remove_item_to_data(hit.id)
                 hit.kill()
                 if self.player.pants is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.pants
@@ -369,8 +392,9 @@ class Game:
                     self.player.pants = hit.type
                 else:
                     self.player.pants = hit.type
+
             if hit.type in SHOES_NAME and self.player.number_of_items<14:
-       
+                self.network.add_remove_item_to_data(hit.id)
                 hit.kill()
                 if self.player.shoes is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.shoes
@@ -378,6 +402,7 @@ class Game:
                     self.player.shoes = hit.type
                 else:
                     self.player.shoes = hit.type
+
             
         # mobs hit player
         # hits_1 = pg.sprite.spritecollide(self.player, self.mobs, False, collide_hit_rect)
@@ -416,6 +441,15 @@ class Game:
 
         self.chat_box.update()
         self.list_mobs.update()
+
+        # for id in self.pub_key_list.keys():
+        #     if self.pub_key_list[id]:
+        #         print(f"Id {id}: {self.pub_key_list[id].value1}, {self.pub_key_list[id].value2}")
+        # for id, key in self.pub_key_list.items():
+        #     print(f"Id {id}: {key}")
+        # print("Updating...")
+        # print(self.pub_key_list)
+        # print(self.pub_key_list.keys())
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
@@ -469,6 +503,12 @@ class Game:
             self.screen.blit(self.dim_screen, (0, 0))
             self.draw_text("Paused", self.title_font, 105, RED, WIDTH / 2, HEIGHT / 2, align="center")
         self.chat_box.draw()
+        for other_player in self.other_player_list.values():
+            if detect_mouse_over_player(other_player, self.camera):
+                print("Mouse on player")
+                player_info_display = InfoDisplay(self, other_player)
+                player_info_display.draw()
+        
         pg.display.flip()
 
     def events(self):

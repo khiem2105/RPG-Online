@@ -3,6 +3,8 @@ import Cnetwork
 import time
 import _thread
 from sprites import OtherPlayer
+from rsa import *
+from key import *
 # Send to all others peer:
 # 1. Master : master_send_all(message)
 # 2. Peer   : peer_send_all(message)
@@ -43,6 +45,9 @@ class Network:
         Cnetwork.listen_and_accept()
         Cnetwork.master_peer_start_loop()
 
+    def add_puclic_key_to_data(self):
+        self.data_frame += (" ").join(["Public_key:", str(self.game.key_pair.pub_key.value1), str(self.game.key_pair.pub_key.value2)]) + ";"
+
     def add_pos_to_data(self, x, y, rot):
         self.data_frame  += (" ").join(["Pos:", str(x), str(y), str(rot)]) + ";"
 
@@ -61,9 +66,12 @@ class Network:
     def add_items_to_data(self,items_data):
         self.data_frame += "Items:"+" "
         for item in items_data:
-            self.data_frame += (",").join(["x:"+str(item["x"]),"y:"+str(item["y"]),"type:"+str(item["type"])])+"!"
+            self.data_frame += (",").join(["x:"+str(item["x"]),"y:"+str(item["y"]),"type:"+str(item["type"]),"id:"+str(item["id"])])+"!"
         self.data_frame+= ";"
 
+    def add_remove_item_to_data(self, id):
+        self.data_frame += "Remove_Item:"+" "+id+";"
+        
     def sync_resize_map(self, direction, data):
         # Sync unlimited map
         # Package : Extend_map <Direction:Right/Bottom> <Row> <Col> <X*Y numbers: Wall or Not>
@@ -72,6 +80,7 @@ class Network:
         
     def run_master(self):
 
+        # test
         # Send data of master to all peers
         # Cnetwork.master_send_all("Data;%i,%i;" %(100, 100))
         # Check if data_frame = NULL => return (not send)
@@ -81,7 +90,7 @@ class Network:
         message = self.data_frame
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.master_send_all(message)
-        #if self.DEBUG: print("Master sent to all:" + message)
+        # if self.DEBUG: print("Master sent to all:" + message)
         # reset message
         self.data_frame = ""
 	
@@ -101,12 +110,17 @@ class Network:
                 elif data[0] == "Disconnected":
                     id_player = int(data[1])
                     if self.DEBUG : print("Player", id_player, "disconnected! Deleted from the list...")
-                    print(self.game.other_player_list[id_player].name)
+                    player = self.game.other_player_list[id_player]
+                    # Store data 
+                    # @LONG : have to insert inventory
+                    self.data_store[player.player_name] = {
+                            "Pos" : player.pos,
+                            "Hp" : player.health
+                            }
                     self.game.other_player_list[id_player].kill()
                     self.game.other_player_list.pop(id_player, None)
-                    # self.data_store['']
         except Exception as E:
-            print(str(E))
+            print(str(E), "first try in : method master_get_data/network.py")
 
         # Get data from other players => to update status
         # To do : add a loop to get all peers
@@ -114,7 +128,7 @@ class Network:
             for i in self.list_id():
                 data = Cnetwork.master_get_message_from_player(i)
                 if data != None:
-                    #if self.DEBUG: print("[Python] Master received data from player ",i ," : ", data)
+                    # if self.DEBUG: print("[Python] Master received data from player ",i ," : ", data)
                     self.analyse_data_received(data, i)
                     # data = data.split(';')
                     # if data[0] == "Data":
@@ -122,7 +136,7 @@ class Network:
                         # key = data[1]
                         # self.game.other_player_list[i].updateKey(key)
         except Exception as E:
-            print(str(E))
+            print(str(E), "second try in : method master_get_data/network.py")
 
     def init_peer(self):
         print("[Python] you are the normal peer! with port "+str(self.game.port))
@@ -142,7 +156,7 @@ class Network:
         # add name
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.peer_send_all(message)
-        #if self.DEBUG: print("Peer sent to all : " , message)
+        # if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
         self.data_frame = ""
 
@@ -154,7 +168,7 @@ class Network:
         # add name
         message += (" ").join(["Name:", self.player_name]) + ";"
         Cnetwork.peer_send_data_to_master(message)
-        #if self.DEBUG: print("Peer sent to all : " , message)
+        # if self.DEBUG: print("Peer sent to all : " , message)
         # reset message
         self.data_frame = ""
 
@@ -190,14 +204,30 @@ class Network:
                         y =int(value[1])
                     elif value[0]=="type":
                         type =str(value[1])
-            self.game.create_item(x,y,type)
+                    elif value[0]=="id":
+                        id =str(value[1])
+            self.game.create_item(x,y,type,id)
+
+    def send_chat_message_to_all(self, message):
+        for id in self.list_id():
+            print(f"{id}: {self.game.pub_key_list}")
+            encoded_message = encode(message, self.game.pub_key_list[id])
+            print(encoded_message)
+            encoded_message = "Chat: " + encoded_message + ";"
+            # print(encoded_message)
+            if self.is_master:
+                Cnetwork.master_send_to_peer_with_id(encoded_message, id)
+            else:
+                Cnetwork.peer_send_to_peer_with_id(encoded_message, id)
+            encoded_message = ""
 
 
+    def send_private_chat_message(self, message, player_name):
+        pass
+        
     def analyse_data_received(self, data_received, id_player):
         if data_received != None and data_received != "":
-            # print("-------------------------------------")
-            # print(data_received)
-            # print("-------------------------------------")
+            # if self.DEBUG: print(data_received)
             data_received = data_received.split(';')
             for data in data_received:
                 data = data.split(" ")
@@ -218,6 +248,9 @@ class Network:
                     self.analyse_zombie_data(zombie_data)
                     pass
                 elif data[0] == "Chat:":
+                    if self.DEBUG:
+                        for i in range(1, len(data)):
+                            print(data[i])
                     mess = "@"+self.game.other_player_list[id_player].player_name + ": "
                     for i in range(1, len(data)):
                         mess = mess + data[i] + " "
@@ -247,7 +280,13 @@ class Network:
                     print("-------------------------------------")
                     print("-------------------------------------")
                     self.analyse_items_data(data[1])
-
+                elif data[0] =="Remove_Item:":
+                    self.game.remove_item(data[1])
+                elif data[0] == "Public_key:":
+                    # print("Update public key list...")
+                    # print(int(data[1]), int(data[2]))
+                    if not self.game.pub_key_list[id_player]:
+                        self.game.pub_key_list[id_player] = Key(int(data[1]), int(data[2]))
 
     #  PEER Get data from other peers
     def peer_get_data(self):
@@ -275,7 +314,7 @@ class Network:
                 if data != "" and data is not None:
                     print("Works :", data)
         except Exception as E:
-            print(str(E))
+            print(str(E), "! First try in peer_get_data/network.py")
 
         # Get data from peer_buffer to know :
         # 1. if someone connected 
@@ -296,7 +335,7 @@ class Network:
                 # if data[0] == "Disconnected":
                     # player_id = int(data[1])
         except Exception as E:
-            print(str(E))
+            print(str(E), "! Second try in peer_get_data/network.py")
            
     def receive_first_message(self):
         welcome = Cnetwork.peer_receive_from_master()
@@ -326,8 +365,8 @@ class Network:
                         # Cnetwork.master_send_to_peer_with_id(self.data_frame, newId)
                         Cnetwork.peer_connect_to_peer(newId, newPort, newIp)
                         self.add_new_player(newId, True)
-                    except:
-                        pass
+                    except Exception as E:
+                        print(str(E), "! Func receive_first_message/network")
             self.first_message = False
 
     def receive_mobs_from_master(self):
