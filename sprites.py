@@ -535,7 +535,7 @@ class MuzzleFlash(pg.sprite.Sprite):
             self.kill()
 
 class Item(pg.sprite.Sprite):
-    def __init__(self, game, pos, type):
+    def __init__(self, game, pos, type, id):
         self._layer = ITEMS_LAYER
         self.groups = game.all_sprites, game.items
         pg.sprite.Sprite.__init__(self, self.groups)
@@ -548,6 +548,8 @@ class Item(pg.sprite.Sprite):
         self.tween = tween.easeInOutSine
         self.step = 0
         self.dir = 1
+        
+        self.id = id 
 
     def update(self):
         # bobbing motion
