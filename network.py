@@ -277,7 +277,7 @@ class Network:
                 elif data[0] =="Items:":
                     self.analyse_items_data(data[1])
                 elif data[0] =="Remove_Item:":
-                    print(data[1])
+                    
                     self.game.remove_item(data[1])
                 elif data[0] == "Public_key:":
                     # print("Update public key list...")
