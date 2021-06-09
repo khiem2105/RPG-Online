@@ -35,9 +35,9 @@ class Network:
         self.game.other_player_list[new_id] = new_player
         print("[Python] Created new instance of OtherPlayer() ")
         print("[Python] List of players : ", self.game.other_player_list)
-        
-        self.add_items_to_data(self.game.items_data)
-        Cnetwork.master_send_to_peer_with_id(self.data_frame, new_id)
+        if new_id != -1:
+            self.add_items_to_data(self.game.items_data)
+            Cnetwork.master_send_to_peer_with_id(self.data_frame, new_id)
 
     def init_master(self):
         print("[Python] you are the master peer! with port "+str(self.game.port))
@@ -70,7 +70,7 @@ class Network:
         self.data_frame+= ";"
 
     def add_remove_item_to_data(self, id):
-        self.data_frame += "Remove_Item:"+" "+id+";"
+        self.data_frame += "Remove_Item:"+" "+str(id)+";"
         
     def sync_resize_map(self, direction, data):
         # Sync unlimited map
