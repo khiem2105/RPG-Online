@@ -139,6 +139,8 @@ ITEM_IMAGES = {'health': 'health_pack.png',
                'pants2':'pants2.png',
                'shoes1':'shoes1.png',
                'shoes2':'shoes2.png',}
+ITEM_NAME = WEAPONS_NAME+SHOES_NAME+ARMORS_NAME+HELMETS_NAME+PANTS_NAME
+
 HEALTH_PACK_AMOUNT = 20
 BOB_RANGE = 10
 BOB_SPEED = 0.3

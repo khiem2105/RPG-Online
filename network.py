@@ -66,13 +66,18 @@ class Network:
     
     def add_items_to_data(self,items_data):
         self.data_frame += "Items:"+" "
-        for item in items_data:
-            self.data_frame += (",").join(["x:"+str(item["x"]),"y:"+str(item["y"]),"type:"+str(item["type"]),"id:"+str(item["id"])])+"!"
+        
+        if type(items_data) is dict:
+            self.data_frame += (",").join(["x:"+str(items_data["x"]),"y:"+str(items_data["y"]),"type:"+str(items_data["type"]),"id:"+str(items_data["id"])])+"!"
+        else:
+            for item in items_data:
+                
+                self.data_frame += (",").join(["x:"+str(item["x"]),"y:"+str(item["y"]),"type:"+str(item["type"]),"id:"+str(item["id"])])+"!"
         self.data_frame+= ";"
 
-    def add_remove_item_to_data(self, id):
+    def add_remove_item_to_data(self, item_id,player_id):
         
-        self.data_frame += "Remove_Item:"+" "+str(id)+";"
+        self.data_frame += "Remove_Item:"+" "+"item_id:"+str(item_id)+","+"player_id:"+str(player_id)+";"
         if self.DEBUG: print(self.data_frame)
         
     def sync_resize_map(self, direction, data):
@@ -85,7 +90,7 @@ class Network:
         if(len(message) < MAX_LENGTH):
             padding = " " * (MAX_LENGTH - len(message)-1)
             message += padding + ";"
-            print(len(message))
+            # print(len(message))
         # if self.DEBUG : print(self.data_frame)
         
     def run_master(self):
@@ -100,7 +105,7 @@ class Network:
         message += (" ").join(["Name:", self.player_name]) + ";"
         self.add_padding_to_message(message)
         Cnetwork.master_send_all(message)
-        if self.DEBUG: print("Master sent to all:" + message)
+        # if self.DEBUG: print("Master sent to all:" + message)
         # reset message
         self.data_frame = ""
 	
@@ -288,7 +293,18 @@ class Network:
                 elif data[0] =="Items:":
                     self.analyse_items_data(data[1])
                 elif data[0] =="Remove_Item:":
-                    self.game.remove_item(data[1])
+                    for attribute in data[1].split(","):
+                        value = attribute.split(":")
+                        if value[0]=="item_id":
+                            item_id =int(value[1])
+                        elif value[0]=="player_id":
+                            player_id =int(value[1])
+                    # print("alo")
+                    print(item_id,player_id)
+                    
+                    self.game.change_item(item_id,player_id)
+                    self.game.remove_item(item_id)
+                    
                 elif data[0] == "Public_key:":
                     # print("Update public key list...")
                     # print(int(data[1]), int(data[2]))
@@ -321,7 +337,8 @@ class Network:
                 if data != "" and data is not None:
                     print("Works :", data)
         except Exception as E:
-            print(str(E), "! First try in peer_get_data/network.py")
+            # print(str(E), "! First try in peer_get_data/network.py")
+            pass
 
         # Get data from peer_buffer to know :
         # 1. if someone connected 

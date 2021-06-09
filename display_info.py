@@ -1,3 +1,4 @@
+from os import pardir
 from settings import BLACK
 import pygame as pg
 from pygame.constants import BLEND_MULT

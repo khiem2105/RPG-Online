@@ -235,7 +235,7 @@ class Game:
                     # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
                     self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
                                             "y":int(row*TILESIZE+TILESIZE/2),
-                                            "type":'health'})                    
+                                            "type":'health',})                    
                 if tile == 'G':
                     gun=choice(WEAPONS_NAME)
                     # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
@@ -298,11 +298,13 @@ class Game:
         if self.network.is_master:
             for item in self.items_data:
                 Item(self, [int(item["x"]),int(item["y"])], item['type'], item['id'])
-        
 
     def create_item(self,x,y,type,id):
         if not self.network.is_master:
             Item(self, [int(x),int(y)], type, id)
+
+    def create_item_for_all_case(self,x,y,type,id): 
+        Item(self, [int(x),int(y)], type, id)
 
     def remove_item(self,id):
         for item in self.items:
@@ -310,7 +312,31 @@ class Game:
             if item.id == int(id):
                 item.kill()
 
-
+    def change_item(self,item_id,player_id):
+        picked_item=None
+        print(len(self.items))
+        for item in self.items:
+            # print (item.id)
+            if item.id == int(item_id):
+                print("picked item")
+                picked_item=item
+        if picked_item is not None:
+            if picked_item.type in WEAPONS_NAME:
+                print(player_id,picked_item.type)
+                self.other_player_list[player_id].weapon=picked_item.type
+            elif picked_item.type in HELMETS_NAME:
+                print(player_id,picked_item.type)
+                self.other_player_list[player_id].helmet=picked_item.type
+            elif picked_item.type in ARMORS_NAME:
+                print(player_id,picked_item.type)
+                self.other_player_list[player_id].armor=picked_item.type
+            elif picked_item.type in PANTS_NAME:
+                print(player_id,picked_item.type)
+                self.other_player_list[player_id].pants=picked_item.type
+            elif picked_item.type in SHOES_NAME:
+                print(player_id,picked_item.type)
+                self.other_player_list[player_id].shoes=picked_item.type
+    
     def create_mobs(self):
         self.list_mobs = ListMobs(self)
         self.list_mobs.create_mob_list()
@@ -360,7 +386,7 @@ class Game:
                 self.player.add_health(HEALTH_PACK_AMOUNT)
             #pickup items
             if hit.type in WEAPONS_NAME and self.player.number_of_items<14:
-                self.network.add_remove_item_to_data(hit.id)
+                self.network.add_remove_item_to_data(hit.id,0)
                 # if not self.network.is_master:
                 #     self.network.run_master()
                 # else:
@@ -372,7 +398,7 @@ class Game:
                 self.player.weapon = hit.type
 
             if hit.type in HELMETS_NAME and self.player.number_of_items<14:
-                self.network.add_remove_item_to_data(hit.id)
+                self.network.add_remove_item_to_data(hit.id,0)
                 # if not self.network.is_master:
                 #     self.network.run_master()
                 # else:
@@ -386,7 +412,7 @@ class Game:
                     self.player.helmet = hit.type
 
             if hit.type in ARMORS_NAME and self.player.number_of_items<14:
-                self.network.add_remove_item_to_data(hit.id)
+                self.network.add_remove_item_to_data(hit.id,0)
                 # if not self.network.is_master:
                 #     self.network.run_master()
                 # else:
@@ -400,7 +426,7 @@ class Game:
                     self.player.armor = hit.type
 
             if hit.type in PANTS_NAME and self.player.number_of_items<14:
-                self.network.add_remove_item_to_data(hit.id)
+                self.network.add_remove_item_to_data(hit.id,0)
                 # if not self.network.is_master:
                 #     self.network.run_master()
                 # else:
@@ -414,7 +440,7 @@ class Game:
                     self.player.pants = hit.type
 
             if hit.type in SHOES_NAME and self.player.number_of_items<14:
-                self.network.add_remove_item_to_data(hit.id)
+                self.network.add_remove_item_to_data(hit.id,0)
                 # if not self.network.is_master:
                 #     self.network.run_master()
                 # else:
