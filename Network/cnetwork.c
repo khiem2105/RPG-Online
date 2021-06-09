@@ -18,7 +18,7 @@
 #include <time.h>
 #include <pthread.h>
 
-
+#define BUFFSIZE 1024
 #define BUF_SIZE 1024
 #define false 0
 #define true 1
@@ -127,6 +127,46 @@ pthread_t peer_thread;
 // -------------------END Delaration variable ---------------------
 // ---------------------------------------------------------------
 
+//Receive loop for all amount of data
+char* recv_loop(int s) {
+    char *result = NULL;
+    char chunk[BUFFSIZE];
+    int size_recv = 0, total_size = 0;
+    printf("Enter the function\n");
+
+    memset(chunk, 0, BUFFSIZE);
+    while(1) {
+        // printf("Receiving data...\n");
+        size_recv = recv(s, chunk, BUFFSIZE-1, 0);
+        if(size_recv < 0)
+            break;
+        if(size_recv == 0) {
+            printf("Client disconnected\n");
+            break;
+        }
+        chunk[size_recv] = '\0';
+        if(total_size == 0) {
+            result = malloc(size_recv * sizeof(char));
+            strcpy(result, chunk);
+            total_size += size_recv;
+        }
+        else {
+            total_size += size_recv;
+            char *tmp;
+            tmp = realloc(result, total_size * sizeof(char));
+            if(tmp == NULL) {
+                printf("Error in realloc\n");
+
+            }
+            else {
+                result = tmp;
+                strcat(result, chunk);
+            }
+        }
+    }
+
+    return result;
+}
 
 // --------COLLECTION OF FUNCTIONS "PASSE PARTOUT"-------------
 // ------------- STOP = PERROR + EXIT -------------------
@@ -525,15 +565,18 @@ static PyObject* master_peer_end_loop(PyObject* self) {
 // ------------------ Peer receive from master -----------------
 char* Cpeer_receive_from_old_peer(int id) {
     bzero(Peer.buffer, 1024);
+	// char *ms;
     for (int i=0; i < Peer.number_of_old_peers; i++) {
-	if (Peer.old_peer_socket[i].id == id) {
-	    if (recv(Peer.old_peer_socket[i].fd, Peer.buffer, 1023, 0) < 0) {
-		if (errno != EAGAIN) perror("[C] Peer_receive_from_master failed! ");
-	    }
-	    break;
-	}
+		if (Peer.old_peer_socket[i].id == id) {
+			if (recv(Peer.old_peer_socket[i].fd, Peer.buffer, 1023, MSG_WAITALL) < 0) {
+				if (errno != EAGAIN) perror("[C] Peer_receive_from_master failed! ");
+			}
+			// ms = recv_loop(Peer.old_peer_socket[i].fd);
+			break;
+		}
     }
     return Peer.buffer;
+	// return ms;
 }
 
 static PyObject* peer_receive_from_old_peer(PyObject* self, PyObject* args) {
@@ -549,10 +592,12 @@ static PyObject* peer_receive_from_old_peer(PyObject* self, PyObject* args) {
 // ------------------ Peer receive from master -----------------
 char* Cpeer_receive_from_master(void) {
     bzero(Peer.buffer, 1024);
-    if (recv(Peer.master_file_desc, Peer.buffer, 1023, 0) < 0) {
-	if (errno != EAGAIN) perror("[C] Peer_receive_from_master failed! ");
-    }
+	if (recv(Peer.master_file_desc, Peer.buffer, 1023, MSG_WAITALL) < 0) {
+		if (errno != EAGAIN) perror("[C] Peer_receive_from_master failed! ");
+	}
+	// char *data = recv_loop(Peer.master_file_desc);
     return Peer.buffer;
+	// return data;
 }
 
 static PyObject* peer_receive_from_master(PyObject* self) {

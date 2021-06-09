@@ -1,3 +1,4 @@
+from settings import MAX_LENGTH
 from sys import setdlopenflags
 import Cnetwork
 import time
@@ -68,6 +69,11 @@ class Network:
         # Package : Extend_map <Direction:Right/Bottom> <Row> <Col> <X*Y numbers: Wall or Not>
         self.data_frame += (" ").join(["Extend_map", direction, str(len(data[0])), str(len(data))] + [str(i) for line in data for i in line]) + ';'
         if self.DEBUG : print(self.data_frame)
+
+    def add_padding_to_message(self):
+        if(len(self.data_frame) < MAX_LENGTH):
+            padding = " " * (MAX_LENGTH - len(self.data_frame))
+            self.data_frame += padding + ";"
         
     def run_master(self):
         # test
@@ -205,6 +211,8 @@ class Network:
             # if self.DEBUG: print(data_received)
             data_received = data_received.split(';')
             for data in data_received:
+                if data[0] == " ":
+                    continue
                 data = data.split(" ")
                 # if self.DEBUG: 
                 #     if id_player == -1: print("data_master:", data)
