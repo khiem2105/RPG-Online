@@ -81,10 +81,11 @@ class Network:
         self.data_frame += (" ").join(["Extend_map", direction, str(len(data[0])), str(len(data))] + [str(i) for line in data for i in line]) + ';'
         if self.DEBUG : print(self.data_frame)
 
-    def add_padding_to_message(self):
-        if(len(self.data_frame) < MAX_LENGTH):
-            padding = " " * (MAX_LENGTH - len(self.data_frame))
-            self.data_frame += padding + ";"
+    def add_padding_to_message(self, message):
+        if(len(message) < MAX_LENGTH):
+            padding = " " * (MAX_LENGTH - len(message)-1)
+            message += padding + ";"
+            print(len(message))
         # if self.DEBUG : print(self.data_frame)
         
     def run_master(self):
@@ -97,8 +98,9 @@ class Network:
         # add name
         message = self.data_frame
         message += (" ").join(["Name:", self.player_name]) + ";"
+        self.add_padding_to_message(message)
         Cnetwork.master_send_all(message)
-        # if self.DEBUG: print("Master sent to all:" + message)
+        if self.DEBUG: print("Master sent to all:" + message)
         # reset message
         self.data_frame = ""
 	
@@ -163,6 +165,7 @@ class Network:
         message = self.data_frame
         # add name
         message += (" ").join(["Name:", self.player_name]) + ";"
+        self.add_padding_to_message(message)
         Cnetwork.peer_send_all(message)
         # if self.DEBUG: print("Peer sent to all : " , message)
         # reset message

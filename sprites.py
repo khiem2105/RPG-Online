@@ -203,7 +203,7 @@ class Player(pg.sprite.Sprite):
 class OtherPlayer(pg.sprite.Sprite):
     def __init__(self, game, x, y, player_name):
         self._layer = PLAYER_LAYER
-        self.groups = game.all_sprites
+        self.groups = game.all_sprites, game.other_players
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         self.image = game.player_img

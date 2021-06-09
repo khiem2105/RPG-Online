@@ -203,6 +203,7 @@ class Game:
         self.mobs = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
         self.items = pg.sprite.Group()
+        self.other_players = pg.sprite.Group()
         # self.map = TiledMap(path.join(self.map_folder, 'level1.tmx'))
         # self.map_img = self.map.make_map()
         # self.map.rect = self.map_img.get_rect()
@@ -464,6 +465,15 @@ class Game:
 
         self.chat_box.update()
         self.list_mobs.update()
+
+        #bullets hit other players:
+        hits = pg.sprite.groupcollide(self.other_players, self.bullets, False, True)
+        for other_player in hits:
+            for bullet in hits[other_player]:
+                other_player.health -= bullet.damage
+        #bullets hit main player
+        # hits = pg.sprite.groupcollide(self.player, self.mobs, False, True)
+        # for hit in hits
 
         # for id in self.pub_key_list.keys():
         #     if self.pub_key_list[id]:
