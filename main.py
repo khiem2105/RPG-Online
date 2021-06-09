@@ -60,6 +60,8 @@ class Game:
         self.is_right_click=False
         self.is_left_click=False
         self.mouse_pos_at_clicked =[0,0]
+        # items data
+        self.items_data= []
         #Chat
         self.chat_box = ChatBox(self)
         self.chatting = False
@@ -218,7 +220,8 @@ class Game:
         #                  tile_object.width, tile_object.height)
         #     if tile_object.name in ['health', 'shotgun']:
         #         Item(self, obj_center, tile_object.name)
-            
+        
+        item_id =0
         for row, tiles in enumerate(self.map.data):
             for col, tile in enumerate(tiles):
                 if tile == '1':
@@ -228,47 +231,50 @@ class Game:
                 if tile == 'P':
                     self.player = Player(self, int(col*TILESIZE+TILESIZE/2), int(row*TILESIZE+TILESIZE/2))
                 if tile == 'h':
-                    if self.network.is_master: 
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
-                    else:
-                        # receive data and then init items
-                        pass
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], 'health')
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":'health'})                    
                 if tile == 'G':
-                    if self.network.is_master:
-                        gun=choice(WEAPONS_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
-                    else:
-                        # receive data and then init items
-                        pass
+                    gun=choice(WEAPONS_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], gun)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":gun,
+                                            "id":item_id})
+                    item_id += 1 
                 if tile =="H":
-                    if self.network.is_master:
-                        helmet=choice(HELMETS_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], helmet)
-                    else:
-                        # receive data and then init items
-                        pass
+                    helmet=choice(HELMETS_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], helmet)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":helmet,
+                                            "id":item_id})
+                    item_id += 1 
                 if tile =="A":
-                    if self.network.is_master:
-                        armor=choice(ARMORS_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], armor)
-                    else:
-                        # receive data and then init items
-                        pass
+                    armor=choice(ARMORS_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], armor)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":armor,
+                                            "id":item_id})
+                    item_id += 1                         
                 if tile =="L":
-                    if self.network.is_master:
-                        pants=choice(PANTS_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], pants)
-                    else:
-                        # receive data and then init items
-                        pass
+                    pants=choice(PANTS_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], pants)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":pants,
+                                            "id":item_id})
+                    item_id += 1 
                 if tile =="S":
-                    if self.network.is_master:
-                        shoes=choice(SHOES_NAME)
-                        Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], shoes)
-                    else:
-                        # receive data and then init items
-                        pass
-
+                    shoes=choice(SHOES_NAME)
+                    # Item(self, [int(col*TILESIZE+TILESIZE/2),int(row*TILESIZE+TILESIZE/2)], shoes)
+                    self.items_data.append({"x":int(col*TILESIZE+TILESIZE/2),
+                                            "y":int(row*TILESIZE+TILESIZE/2),
+                                            "type":shoes,
+                                            "id":item_id})
+                    item_id += 1 
         self.camera = Camera(self.map.width, self.map.height)
         self.inventory = Inventory(self)
         self.draw_debug = False
@@ -287,6 +293,23 @@ class Game:
         self.fog = Fog(self)
         self.minimap = Minimap(self)
     
+    def init_items(self):
+        if self.network.is_master:
+            for item in self.items_data:
+                Item(self, [int(item["x"]),int(item["y"])], item['type'], item['id'])
+        
+
+    def create_item(self,x,y,type,id):
+        if not self.network.is_master:
+            Item(self, [int(x),int(y)], type, id)
+
+    def remove_item(self,id):
+        for item in self.items:
+            # print (item.id)
+            if item.id == int(id):
+                item.kill()
+
+
     def create_mobs(self):
         self.list_mobs = ListMobs(self)
         self.list_mobs.create_mob_list()
@@ -316,6 +339,8 @@ class Game:
         sys.exit()
 
     def update(self):
+        
+
         # update portion of the game loop
         self.all_sprites.update()
         self.camera.update(self.player)
@@ -324,23 +349,33 @@ class Game:
         #     self.playing = False
 
         # player hits items
+
         hits = pg.sprite.spritecollide(self.player, self.items, False)
         for hit in hits:
             if hit.type == 'health' and self.player.health < PLAYER_HEALTH:
-                print(hit)
+                
                 hit.kill()
                 # self.effects_sounds['health_up'].play()
                 self.player.add_health(HEALTH_PACK_AMOUNT)
             #pickup items
             if hit.type in WEAPONS_NAME and self.player.number_of_items<14:
-                print(hit)
+                self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 # self.effects_sounds['gun_pickup'].play()
                 self.player.back_pack[self.player.number_of_items] = self.player.weapon
                 self.player.number_of_items +=1
                 self.player.weapon = hit.type
+
             if hit.type in HELMETS_NAME and self.player.number_of_items<14:
-                print(hit)
+                self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 if self.player.helmet is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.helmet
@@ -348,8 +383,13 @@ class Game:
                     self.player.helmet = hit.type
                 else:
                     self.player.helmet = hit.type
+
             if hit.type in ARMORS_NAME and self.player.number_of_items<14:
-                print(hit)
+                self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 if self.player.armor is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.armor
@@ -357,8 +397,13 @@ class Game:
                     self.player.armor = hit.type
                 else:
                     self.player.armor = hit.type
+
             if hit.type in PANTS_NAME and self.player.number_of_items<14:
-                print(hit)
+                self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 if self.player.pants is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.pants
@@ -366,8 +411,13 @@ class Game:
                     self.player.pants = hit.type
                 else:
                     self.player.pants = hit.type
+
             if hit.type in SHOES_NAME and self.player.number_of_items<14:
-                print(hit)
+                self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 if self.player.shoes is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.shoes
@@ -550,6 +600,7 @@ while True:
     g.new()
     while g.menu_is_running:
         g.menu.display_menu()
+    g.init_items()
     g.create_mobs()
     g.run()
     g.show_go_screen()
