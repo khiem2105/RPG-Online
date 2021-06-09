@@ -70,13 +70,15 @@ class Network:
         self.data_frame+= ";"
 
     def add_remove_item_to_data(self, id):
+        
         self.data_frame += "Remove_Item:"+" "+str(id)+";"
+        if self.DEBUG: print(self.data_frame)
         
     def sync_resize_map(self, direction, data):
         # Sync unlimited map
         # Package : Extend_map <Direction:Right/Bottom> <Row> <Col> <X*Y numbers: Wall or Not>
         self.data_frame += (" ").join(["Extend_map", direction, str(len(data[0])), str(len(data))] + [str(i) for line in data for i in line]) + ';'
-        if self.DEBUG : print(self.data_frame)
+        # if self.DEBUG : print(self.data_frame)
         
     def run_master(self):
 
@@ -228,6 +230,7 @@ class Network:
     def analyse_data_received(self, data_received, id_player):
         if data_received != None and data_received != "":
             # if self.DEBUG: print(data_received)
+            
             data_received = data_received.split(';')
             for data in data_received:
                 data = data.split(" ")
@@ -272,15 +275,9 @@ class Network:
                     if self.DEBUG: print(extend_data)
                     self.game.peer_extend_map(data[1], 15, extend_data)
                 elif data[0] =="Items:":
-                    print("-------------------------------------")
-                    print("-------------------------------------")
-                    print("-------------------------------------")
-                    print(data[1])
-                    print("-------------------------------------")
-                    print("-------------------------------------")
-                    print("-------------------------------------")
                     self.analyse_items_data(data[1])
                 elif data[0] =="Remove_Item:":
+                    print(data[1])
                     self.game.remove_item(data[1])
                 elif data[0] == "Public_key:":
                     # print("Update public key list...")

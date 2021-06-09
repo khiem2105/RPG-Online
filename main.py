@@ -305,8 +305,9 @@ class Game:
 
     def remove_item(self,id):
         for item in self.items:
-            if item.id == id:
-                item.activate = False
+            # print (item.id)
+            if item.id == int(id):
+                item.kill()
 
 
     def create_mobs(self):
@@ -338,6 +339,8 @@ class Game:
         sys.exit()
 
     def update(self):
+        
+
         # update portion of the game loop
         self.all_sprites.update()
         self.camera.update(self.player)
@@ -357,6 +360,10 @@ class Game:
             #pickup items
             if hit.type in WEAPONS_NAME and self.player.number_of_items<14:
                 self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 # self.effects_sounds['gun_pickup'].play()
                 self.player.back_pack[self.player.number_of_items] = self.player.weapon
@@ -365,6 +372,10 @@ class Game:
 
             if hit.type in HELMETS_NAME and self.player.number_of_items<14:
                 self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 if self.player.helmet is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.helmet
@@ -375,6 +386,10 @@ class Game:
 
             if hit.type in ARMORS_NAME and self.player.number_of_items<14:
                 self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 if self.player.armor is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.armor
@@ -385,6 +400,10 @@ class Game:
 
             if hit.type in PANTS_NAME and self.player.number_of_items<14:
                 self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 if self.player.pants is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.pants
@@ -395,6 +414,10 @@ class Game:
 
             if hit.type in SHOES_NAME and self.player.number_of_items<14:
                 self.network.add_remove_item_to_data(hit.id)
+                # if not self.network.is_master:
+                #     self.network.run_master()
+                # else:
+                #     self.network.run_peer()
                 hit.kill()
                 if self.player.shoes is not None:
                     self.player.back_pack[self.player.number_of_items] = self.player.shoes
