@@ -58,14 +58,14 @@ class Player(pg.sprite.Sprite):
         self.back_pack=[None]*14
         self.number_of_items=0
         # self.last_received_key = None
-
+        
     def draw_name(self):
         # draw name
         font = pg.font.SysFont(None, 20)
         player_name = font.render(self.game.network.player_name, True, RED)
         self.image.blit(player_name, (10, 0) )
         # self.game.screen.blit(name, self.game.camera.apply(name))
-
+        
         # img = font.render(sysfont, True, RED)
         # rect = img.get_rect()
         # pygame.draw.rect(img, BLUE, rect, 1)
@@ -217,6 +217,10 @@ class OtherPlayer(pg.sprite.Sprite):
         self.last_shot = 0
         self.health = PLAYER_HEALTH
         self.weapon = 'pistol'
+        self.helmet = None
+        self.armor = None
+        self.pants = None
+        self.shoes = None
         self.damaged = False
         self.player_name = player_name
         self.last_received_key = None
@@ -343,6 +347,11 @@ class Mob(pg.sprite.Sprite):
             self.rect.center = self.hit_rect.center
         if self.health <= 0:
             # choice(self.game.zombie_hit_sounds).play()
+            temp_item_name= choice(ITEM_NAME)
+            self.game.create_item_for_all_case(int(self.pos.x), int(self.pos.y), temp_item_name , len(self.game.items))
+            # print({"x":int(self.pos.x),"y":int(self.pos.y),"type":temp_item_name,"id":(len(self.game.items)-1)})
+            self.game.network.add_items_to_data({"x":int(self.pos.x),"y":int(self.pos.y),"type":temp_item_name,"id":(len(self.game.items)-1)})
+            
             self.kill()
             self.game.screen.blit(self.game.splat, self.pos - vec(32, 32))
             list_mob = self.game.list_mobs.list
