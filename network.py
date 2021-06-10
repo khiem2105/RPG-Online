@@ -83,7 +83,7 @@ class Network:
 
     def add_padding_to_message(self, message):
         if(len(message) < MAX_LENGTH):
-            padding = " " * (MAX_LENGTH - len(message)-1)
+            padding = " " * (MAX_LENGTH - len(message) - 1)
             message += padding + ";"
             print(len(message))
         # if self.DEBUG : print(self.data_frame)
